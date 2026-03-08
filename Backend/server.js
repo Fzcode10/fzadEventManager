@@ -18,6 +18,7 @@ app.get('/', (req, res) => {
     })
 });
 
+app.use("/uploads", express.static("uploads"));
 app.use('/api/visitor', VisitorRoute);
 app.use('/api/host', HostRoute);
 

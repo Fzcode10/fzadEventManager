@@ -40,7 +40,12 @@ const visitorSchema = new mongoose.Schema({
 
   eventName: {
     type: String,
-    required: true
+    required: true,
+    default: "fzad"
+  },
+
+  photo: {              // 👈 Added here
+    type: String
   },
 
   registrationId: {
@@ -68,9 +73,9 @@ const visitorSchema = new mongoose.Schema({
     timestamps: true
 });
 
-visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, year, eventName ){
+visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, photo, year, eventName ){
   const exists = await VisitorLoginModule.findOne({email});
-  const alreadyRegister = await this.find({email});
+  const alreadyRegister = await this.findOne({email, eventName});
 
   if(!exists) {
     throw Error("Signup first");
@@ -82,7 +87,11 @@ visitorSchema.statics.register = async function (fullName, email, phone, college
   
   const rId = createRegistrationId();
 
-  const visitorRegister = await this.create({fullName, email, phone, collegeName, department, year, eventName, registrationId : rId});
+  const visitorRegister = await this.create({fullName, email, phone, collegeName, department, photo, year, eventName, registrationId : rId});
+
+  if(!visitorRegister) {
+    throw Error("Registration failed!");
+  }
 
   return visitorRegister;
 }
