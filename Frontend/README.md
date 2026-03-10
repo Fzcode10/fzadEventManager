@@ -23,3 +23,9 @@ dependencies
 # 1.npm i tailwind css
 # 2.npm i react-router-dom
 # 3.npm i lncide-react
+// use for ticket download but qr issues
+# npm install html2canvas 
+// use for ticket download 
+# npm install jspdf 
+// use this to direct redrow the html page
+#  npm install html-to-image  

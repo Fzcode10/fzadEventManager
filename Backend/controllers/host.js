@@ -1,40 +1,46 @@
 const visitorCheckStatusModule = require('../models/visitorCheckInOut');
 const VisitorModule = require('../models/visitorRegisteration');
 const nodemailer = require('nodemailer');
+const sendMail = require('../utils/mailSender');
 
 exports.allRegistredEmail = async (req, res) => {
 
-    const {eventName} = req.body;
-
-    try{
-        if(!eventName) {
-            throw Error("Enter event name properly");
-        }
-
-        const visitors = await VisitorModule.find({eventName});
-
-        if(!visitors || visitors.length === 0){
-            throw Error("No visitor found");
-        }
-
-        return res.status(200).json({
-            visitors: visitors
-        })
-
-    }catch(error) {
-        return res.status(404).json({
-            error: error.message
-        })
-    }
-}
-
-exports.makeFree = async (req, res) => {
+  const { eventName } = req.body;
 
   try {
-    const { registrationId } = req.body;
+    if (!eventName) {
+      throw Error("Enter event name properly");
+    }
+
+    const visitors = await VisitorModule.find({ eventName });
+
+    if (!visitors || visitors.length === 0) {
+      throw Error("No visitor found");
+    }
+
+    return res.status(200).json({
+      visitors: visitors
+    })
+
+  } catch (error) {
+    return res.status(404).json({
+      error: error.message
+    })
+  }
+}
+
+
+exports.makeFreeAndInvitation = async (req, res) => {
+
+  try {
+    const { email, eventName } = req.body;
+
+    if (!email || !eventName) {
+      return res.status(400).json({ error: "Request body not complete" });
+    }
 
     const visitor = await VisitorModule.findOneAndUpdate(
-      { registrationId },
+      { email, eventName },
       { paymentStatus: "Free" },
       { new: true }
     );
@@ -43,8 +49,18 @@ exports.makeFree = async (req, res) => {
       return res.status(404).json({ error: "Visitor not found" });
     }
 
+    await sendMail(
+      email,
+      `Invitation for ${eventName}`,
+      `
+      <h2>You are Invited 🎉</h2>
+      <p>You are invited to <b>${eventName}</b>.</p>
+      <p>Please collect your ticket from website...(Profile)</p>
+      `
+    );
+
     res.status(200).json({
-      message: "Payment status updated to Free",
+      message: "Payment updated & invitation email sent successfully",
       visitor
     });
 
@@ -63,28 +79,15 @@ exports.sendInvite = async (req, res) => {
       return res.status(400).json({ error: "Email required" });
     }
 
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // Email options
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `Invitation for ${eventName}`,
-      html: `
-        <h2>You are Invited 🎉</h2>
-        <p>You are invited to <b>${eventName}</b>.</p>
-        <p>Please register soon!</p>
+    await sendMail(
+      email,
+      `Invitation for ${eventName}`,
       `
-    };
-
-    await transporter.sendMail(mailOptions);
+      <h2>You are Invited 🎉</h2>
+      <p>You are invited to <b>${eventName}</b>.</p>
+      <p>Please collect your ticket from website...(Profile)</p>
+      `
+    );
 
     res.status(200).json({ message: "Invitation sent successfully" });
 

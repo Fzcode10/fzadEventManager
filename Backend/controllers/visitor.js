@@ -6,9 +6,9 @@ const jwt = require('jsonwebtoken');
 const QRCode = require("qrcode");
 const nodemailer = require('nodemailer');
 
-const createToken = (_id) => {
-    return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
-}
+// const createToken = (_id) => {
+//     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
+// }
 
 // Check the is Eamil exists
 exports.isExist = async (req, res) => {
@@ -190,7 +190,11 @@ exports.signupVisitor =  async (req, res) => {
         }
 
         const visitor = await VisitorLoginModule.signup(email, password, name);
-        const token = createToken(visitor._id);
+        // const token = createToken(visitor._id);
+        const token = jwt.sign({
+            id: visitor._id,
+            role: visitor.role
+        },   process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
             visitor, token
@@ -220,7 +224,11 @@ exports.loginVisitor = async (req, res) => {
 
         // console.log(visitor);
 
-        const token = createToken(visitor._id);
+        // const token = createToken(visitor._id);
+        const token = jwt.sign({
+            id: visitor._id,
+            role: visitor.role
+        },   process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
             visitor, token
@@ -311,44 +319,43 @@ exports.allEventDetials = async (req, res) => {
 }
 
 exports.getticket = async (req, res) => {
-    const { email } = req.body;
+    const { email, eventName } = req.body;
 
     try {
-        if (!email) {
-            throw Error("Invaild Email");
+        if (!email || !eventName) {
+            return res.status(400).json({ error: "Invalid Email or Event Name" });
         }
 
-        const visitor = await VisitorModule.findOne({ email });
+        const visitor = await VisitorModule.findOne({ email, eventName });
 
         if (!visitor) {
-            throw Error("Register first");
+            return res.status(404).json({ error: "Register first" });
         }
 
         if (!visitor.eventStatus) {
-            throw Error("Event completed");
+            return res.status(400).json({ error: "Event completed" });
         }
 
-        if (visitor.paymentStatus == "Pending") {
-            throw Error("Waiting for permission");
+        if (visitor.paymentStatus === "Pending") {
+            return res.status(403).json({ error: "Waiting for permission" });
         }
 
-        // Create QR data object
+        // QR data
         const qrData = JSON.stringify({
             eventName: visitor.eventName,
             registrationId: visitor.registrationId
         });
 
-        // Generate QR as Base64
-        const qrImage = await QRCode.toDataURL(qrData);
+        // Generate QR as PNG buffer
+        const qrBuffer = await QRCode.toBuffer(qrData);
 
-        return res.status(200).json({
-            msg: "Generated qr",
-            qr: qrImage
-        });
+        // Send PNG image
+        res.type("png");
+        return res.send(qrBuffer);
 
     } catch (error) {
-        return res.status(404).json({
+        return res.status(500).json({
             error: error.message
-        })
+        });
     }
-}
+};
