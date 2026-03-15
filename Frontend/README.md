@@ -29,3 +29,5 @@ dependencies
 # npm install jspdf 
 // use this to direct redrow the html page
 #  npm install html-to-image  
+// Scan a qr
+# npm install qr-scanner

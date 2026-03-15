@@ -58,11 +58,6 @@ const visitorSchema = new mongoose.Schema({
     enum: ["Pending", "Completed", "Free"],
     default: "Pending"
   },
-
-  checkInStatus: {
-    type: Boolean,
-    default: false
-  },
   
   eventStatus :{
     type: Boolean,

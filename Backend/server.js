@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./databaseConnection');
 const VisitorRoute = require('./routes/visitorRoute');
 const HostRoute = require('./routes/hostRoute');
+const Security = require('./routes/securityRoute');
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 });
 
 app.use("/uploads", express.static("uploads"));
+app.use('/api/security', Security);
 app.use('/api/visitor', VisitorRoute);
 app.use('/api/host', HostRoute);
 
