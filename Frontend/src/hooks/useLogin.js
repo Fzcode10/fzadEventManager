@@ -23,7 +23,7 @@ export const useLogin = () => {
 
             if(res.ok){
                 // local storage
-                localStorage.setItem("visitor" , JSON.stringify(json));
+                localStorage.setItem("user" , JSON.stringify(json.token));
 
                 dispatch({type: 'LOGIN', payload: json});
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Signup } from "../hooks/useSignup";
+import { Signup } from "../../hooks/useSignup";
 
 const Signupform = ({ email }) => {
   const { signup, error, isLoading } = Signup();

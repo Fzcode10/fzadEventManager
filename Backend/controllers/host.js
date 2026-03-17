@@ -1,5 +1,5 @@
 const visitorCheckStatusModule = require('../models/visitorCheckInOut');
-const VisitorModule = require('../models/visitorRegisteration');
+const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 const nodemailer = require('nodemailer');
 const sendMail = require('../utils/mailSender');
 
@@ -12,7 +12,7 @@ exports.allRegistredEmail = async (req, res) => {
       throw Error("Enter event name properly");
     }
 
-    const visitors = await VisitorModule.find({ eventName });
+    const visitors = await VisitorRrgistrationodule.find({ eventName });
 
     if (!visitors || visitors.length === 0) {
       throw Error("No visitor found");
@@ -39,7 +39,7 @@ exports.makeFreeAndInvitation = async (req, res) => {
       return res.status(400).json({ error: "Request body not complete" });
     }
 
-    const visitor = await VisitorModule.findOneAndUpdate(
+    const visitor = await VisitorRrgistrationodule.findOneAndUpdate(
       { email, eventName },
       { paymentStatus: "Free" },
       { new: true }

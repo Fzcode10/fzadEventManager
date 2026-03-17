@@ -1,10 +1,11 @@
 const VisitorLoginModule = require('../models/visitorLogin');
-const VisitorModule = require('../models/visitorRegisteration');
+const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 const OTP = require('../models/otpStoreModel');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const QRCode = require("qrcode");
 const nodemailer = require('nodemailer');
+const EventDetials = require('../models/eventDetiials');
 
 // const createToken = (_id) => {
 //     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
@@ -246,7 +247,7 @@ exports.loginVisitor = async (req, res) => {
 // Registration for event 
 exports.registerEvent = async (req, res) => {
 
-    // console.log(req.body);
+    console.log(req.body.fullName);
 
     if (!req.body) {
         return res.status(400).json({ error: "Request body missing" });
@@ -259,11 +260,12 @@ exports.registerEvent = async (req, res) => {
         collegeName,
         department,
         year,
-        eventName
+        eventName,
+        eventId
     } = req.body;
 
     try {
-        if (!fullName || !email || !phone || !collegeName || !eventName) {
+        if (!fullName || !email || !phone || !collegeName || !eventName || !eventId) {
             throw Error("Fill all mindatory field");
         }
 
@@ -276,14 +278,15 @@ exports.registerEvent = async (req, res) => {
 
         const photo = req.file ? req.file.path : null;
 
-        const registeration = await VisitorModule.register(fullName,
+        const registeration = await VisitorRrgistrationodule.register(fullName,
             email,
             phone,
             collegeName,
             department,
             photo,
             year,
-            eventName
+            eventName,
+            eventId
         );
 
         return res.status(200).json({
@@ -301,7 +304,7 @@ exports.allEventDetials = async (req, res) => {
     const { email } = req.body;
 
     try {
-        const event = await VisitorModule.find({ email });
+        const event = await VisitorRrgistrationodule.find({ email });
 
         if (!event) {
             throw Error("Event not found");
@@ -326,7 +329,7 @@ exports.getticket = async (req, res) => {
             return res.status(400).json({ error: "Invalid Email or Event Name" });
         }
 
-        const visitor = await VisitorModule.findOne({ email, eventName });
+        const visitor = await VisitorRrgistrationodule.findOne({ email, eventName });
 
         if (!visitor) {
             return res.status(404).json({ error: "Register first" });
@@ -359,3 +362,23 @@ exports.getticket = async (req, res) => {
         });
     }
 };
+
+exports.allEvent = async (req, res) => {
+    try{
+        const events = await EventDetials.find({bookingStatus: true});
+
+        if(!events){
+            throw Error("Unable tofind events");
+        }
+
+        return res.status(200).json({
+            msg: "All event",
+            events
+        })
+
+    }catch(error){
+        return res.status(404).json({
+            error: error.message
+        })
+    }
+}

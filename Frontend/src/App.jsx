@@ -1,18 +1,35 @@
+import { useContext } from "react";
+import { Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
-import Login from './pages/login';
-import Signup from './pages/signup'
-import RegistrationForm from './components/registration';
-import GenerateQR from './components/qrComponent'
-import QRScanner from './components/security/scanQr';
+import Login from "./pages/login";
+import Signup from "./pages/signup";
+import Home from "./pages/home";
+import Navbar from "./components/navbar";
+import Footer from "./components/footer";
+import { AuthContext } from "./Context/AuthContext";
+import Profile from './components/profile';
 
 function App() {
+  const { user } = useContext(AuthContext);
+
   return (
     <>
-      <Login/>
-      <Signup />
-      <RegistrationForm/>
-      <GenerateQR />
-      <QRScanner />
+      <Navbar />
+      <Routes>
+        {/* <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} /> */}
+
+        <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
+
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+
+        <Route path="/signup" element={user ? <Navigate to="/" /> : <Signup />}/>
+
+        <Route path="/profile" element={ <Profile/>}/>
+
+      </Routes>
+      <Footer />
     </>
   );
 }

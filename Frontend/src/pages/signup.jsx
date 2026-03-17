@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Signupform from "../components/fullForm";
+import Signupform from "../components/visitor/fullForm";
 
 const Signup = () => {
   const [email, setEmail] = useState("");

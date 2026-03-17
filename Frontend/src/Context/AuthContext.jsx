@@ -18,14 +18,14 @@ export const AuthProvider  = ({ children }) => {
     user: null,
   });
 
-  console.log("auth : ", state);
+  // console.log("auth : ", state);
 
   useEffect(() => {
-    const student = JSON.parse(localStorage.getItem("student"));
-    console.log(student);
+    const user = JSON.parse(localStorage.getItem("user"));
+    // console.log(user);
 
-    if (student) {
-      dispatch({ type: "LOGIN", payload: student });
+    if (user) {
+      dispatch({ type: "LOGIN", payload: user });
     }
   }, []);
 

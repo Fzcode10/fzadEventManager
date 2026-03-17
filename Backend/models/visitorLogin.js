@@ -24,8 +24,8 @@ const VisitorLoginSchema = new mongoose.Schema({
         required: true
     }, role: {
         type: String,
-        enum: ["admin", "editor", "viewer"],
-        default: "viewer"
+        enum: ["admin", "host", "visitor"],
+        default: "visitor"
     }
 }, {
     timestamps: true

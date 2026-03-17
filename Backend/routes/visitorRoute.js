@@ -2,7 +2,7 @@ const express = require('express');
 const upload = require('../middleware/uploadPhotos');
 const validateRegistration = require('../middleware/validateRegistration');
 
-const {signupVisitor, loginVisitor, registerEvent, allEventDetials, getticket, isExist, sentOtp, verifyOtp} = require('../controllers/visitor');
+const {signupVisitor, loginVisitor, registerEvent, allEventDetials, getticket, isExist, sentOtp, verifyOtp, allEvent} = require('../controllers/visitor');
 
 const router = express.Router();
 
@@ -30,5 +30,7 @@ router.post('/sendotp', sentOtp);
 
 // Verify Sended otp 
 router.post('/verifyotp', verifyOtp);
+
+router.get('/events/all', allEvent);
 
 module.exports = router
