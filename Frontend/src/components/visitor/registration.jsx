@@ -56,12 +56,25 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
     });
     data.append("photo", photo);
 
+    const token = localStorage.getItem("user");
+
+      // 1. If no token, redirect to home/login immediately
+    if (!token) {
+      navigate("/"); 
+      return;
+    }
+
+    const cleanToken = token.replace(/"/g, "");
+
     console.log(data);
 
     try {
       const response = await fetch("/api/visitor/registration", {
         method: "POST",
         body: data,
+        headers: {
+          Authorization: `Bearer ${cleanToken}`
+        },
       });
 
       const result = await response.json();

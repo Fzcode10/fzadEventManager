@@ -20,6 +20,11 @@ const visitorSchema = new mongoose.Schema({
     lowercase: true
   },
 
+  userId: {
+    type: String,
+    required: true
+  },
+
   phone: {
     type: Number,
     required: true
@@ -73,7 +78,7 @@ const visitorSchema = new mongoose.Schema({
     timestamps: true
 });
 
-visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, photo, year, eventName, eventId ){
+visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, photo, year, eventName, eventId , userId ){
   const exists = await VisitorLoginModule.findOne({email});
   const alreadyRegister = await this.findOne({email, eventName});
 
@@ -87,7 +92,7 @@ visitorSchema.statics.register = async function (fullName, email, phone, college
   
   const rId = createRegistrationId();
 
-  const visitorRegister = await this.create({fullName, email, phone, collegeName, department, photo, year, eventName,eventId, registrationId : rId});
+  const visitorRegister = await this.create({fullName, email, phone, collegeName, department, photo, year, eventName,eventId, userId, registrationId : rId});
 
   if(!visitorRegister) {
     throw Error("Registration failed!");

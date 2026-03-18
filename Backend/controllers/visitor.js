@@ -247,7 +247,7 @@ exports.loginVisitor = async (req, res) => {
 // Registration for event 
 exports.registerEvent = async (req, res) => {
 
-    console.log(req.body.fullName);
+    // console.log(req.body.fullName);
 
     if (!req.body) {
         return res.status(400).json({ error: "Request body missing" });
@@ -265,9 +265,12 @@ exports.registerEvent = async (req, res) => {
     } = req.body;
 
     try {
-        if (!fullName || !email || !phone || !collegeName || !eventName || !eventId) {
+        const userId = req.user.id;
+        // console.log(userId);
+        if (!fullName || !email || !phone || !collegeName || !eventName || !eventId || !userId) {
             throw Error("Fill all mindatory field");
         }
+        // console.log(eventId);
 
         if (!validator.isEmail(email)) {
             throw Error("Invalid Email");
@@ -286,8 +289,11 @@ exports.registerEvent = async (req, res) => {
             photo,
             year,
             eventName,
-            eventId
+            eventId,
+            userId
         );
+
+
 
         return res.status(200).json({
             registeration
@@ -301,35 +307,57 @@ exports.registerEvent = async (req, res) => {
 }
 
 exports.allEventDetials = async (req, res) => {
-    const { email } = req.body;
+  try {
+    const userId = req.user.id;
 
-    try {
-        const event = await VisitorRrgistrationodule.find({ email });
+    // 1. Get registrations
+    const registrations = await VisitorRrgistrationodule.find({ userId });
 
-        if (!event) {
-            throw Error("Event not found");
-        }
-
-        return res.status(200).json({
-            event
-        })
-
-    } catch (error) {
-        return res.status(400).json({
-            error: error.message
-        })
+    if (!registrations.length) {
+      return res.status(404).json({ message: "No events found" });
     }
-}
+
+    // 2. Extract eventIds
+    const eventIds = registrations.map((item) => item.eventId);
+
+    // 3. Get events
+    const events = await EventDetials.find({
+      _id: { $in: eventIds },
+    });
+
+    // 4. Merge event + paymentStatus
+    const finalData = events.map((event) => {
+      const registration = registrations.find(
+        (r) => r.eventId.toString() === event._id.toString()
+      );
+
+      return {
+        ...event.toObject(),
+        paymentStatus: registration?.paymentStatus || "pending",
+      };
+    });
+
+    return res.status(200).json({
+      events: finalData,
+    });
+
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+    });
+  }
+};
 
 exports.getticket = async (req, res) => {
-    const { email, eventName } = req.body;
 
     try {
-        if (!email || !eventName) {
-            return res.status(400).json({ error: "Invalid Email or Event Name" });
+        const {eventId } = req.body;
+        const decoded = req.user;
+        if ( !eventId) {
+            return res.status(400).json({ error: "Invalid eventId" });
         }
 
-        const visitor = await VisitorRrgistrationodule.findOne({ email, eventName });
+        const visitor = await VisitorRrgistrationodule.findOne({ userId: decoded.id, eventId });
 
         if (!visitor) {
             return res.status(404).json({ error: "Register first" });

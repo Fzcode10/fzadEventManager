@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import RegistrationForm from './registration';
 
+
 const VisitorHome = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ const VisitorHome = () => {
             
             {/* TOAST NOTIFICATION */}
             {notification.message && (
-                <div className={`fixed top-5 right-5 z-[100] p-4 rounded-lg shadow-2xl border-l-4 animate-bounce transition-all ${notification.type === 'success' ? 'bg-green-100 border-green-600 text-green-800' : 'bg-red-100 border-red-600 text-red-800'}`}>
+                <div className={`fixed top-5 right-5 z-100 p-4 rounded-lg shadow-2xl border-l-4 animate-bounce transition-all ${notification.type === 'success' ? 'bg-green-100 border-green-600 text-green-800' : 'bg-red-100 border-red-600 text-red-800'}`}>
                     <div className="flex items-center gap-2">
                         <span>{notification.type === 'success' ? '✅' : '❌'}</span>
                         <span className="font-bold">{notification.message}</span>

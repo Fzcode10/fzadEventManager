@@ -4,16 +4,13 @@ const EventDetials = require('../models/eventDetiials');
 
 exports.getProfile = async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
+    const decoded = req.user;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: "Authorization header missing or invalid" });
+    if(!decoded){
+      return res.status(400).json({
+        msg: "User token may not valid"
+      })
     }
-
-    const token = authHeader.split(' ')[1];
-
-    // 1. Verify and Decode
-    const decoded = jwt.verify(token, process.env.SECRET);
     
     // 2. Find user and only fetch needed fields from DB
     // We fetch 'name', 'email', and 'role'

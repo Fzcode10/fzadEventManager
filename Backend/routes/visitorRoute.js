@@ -1,6 +1,7 @@
 const express = require('express');
 const upload = require('../middleware/uploadPhotos');
 const validateRegistration = require('../middleware/validateRegistration');
+const authMiddleware = require('../middleware/auth');
 
 const {signupVisitor, loginVisitor, registerEvent, allEventDetials, getticket, isExist, sentOtp, verifyOtp, allEvent} = require('../controllers/visitor');
 
@@ -14,13 +15,13 @@ router.post('/signup', signupVisitor);
 router.post('/login', loginVisitor);
 
 // Registarion of event 
-router.post('/registration',  upload.single("photo"),  registerEvent);
+router.post('/registration',  authMiddleware, upload.single("photo"),  registerEvent);
 
 // All registred event
-router.post('/allregistredevent', allEventDetials);
+router.get('/allregistredevent', authMiddleware , allEventDetials);
 
 // Generate Qr to attend event
-router.post('/ticket', getticket);
+router.post('/ticket', authMiddleware , getticket);
 
 // Email already Exists in databse
 router.post('/isexists', isExist);
