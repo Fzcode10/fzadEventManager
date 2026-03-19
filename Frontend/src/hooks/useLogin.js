@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../Context/AuthContext.jsx';
+import { AuthContext } from '../Context/AuthContext';
 
 export const useLogin = () => {
 
@@ -19,13 +19,24 @@ export const useLogin = () => {
             })
 
             const json = await res.json();
-            // console.log(JSON.stringify(json));
+            console.log(JSON.stringify(json));
+
+            // const userRole = json.role;
+            // const userName = json.name;
+            // const userToken = JSON.stringify(json.token);
+
+            // const userDetials = {
+            //     role: json.role,
+            //     name : json.name,
+            //     token: json.token
+            // }
 
             if(res.ok){
                 // local storage
                 localStorage.setItem("user" , JSON.stringify(json.token));
+                localStorage.setItem( "userDetials", JSON.stringify({ name:json.name,role: json.role, token: json.token }));
 
-                dispatch({type: 'LOGIN', payload: json});
+                dispatch({type: 'LOGIN', payload: {name: json.name, role: json.role, token: json.token}});
 
                 setLoading(false);
             }else{

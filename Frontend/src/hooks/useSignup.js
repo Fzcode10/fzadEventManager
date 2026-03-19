@@ -4,7 +4,7 @@ import { AuthContext } from '../Context/AuthContext';
 export const Signup = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const {dispatch} = useContext(AuthContext);
+  const { dispatch } = useContext(AuthContext);
 
   const signup = async (formData) => {
     setIsLoading(true);
@@ -17,13 +17,21 @@ export const Signup = () => {
       });
 
       const json = await res.json();
-      console.log(JSON.stringify(json));
+      // console.log(JSON.stringify(json));
 
       if (res.ok) {
         // local storage
         localStorage.setItem("user", JSON.stringify(json.token));
+        localStorage.setItem(
+          "userDetials",
+          JSON.stringify({
+            name: json.name,
+            role: json.role,
+            token: json.token
+          })
+        );
 
-        dispatch({ type: "LOGIN", payload: json });
+        dispatch({ type: 'LOGIN', payload: { name: json.name, role: json.role, token: json.token } });
 
         setIsLoading(false);
       } else {

@@ -2,6 +2,7 @@ const express = require('express');
 const upload = require('../middleware/uploadPhotos');
 const validateRegistration = require('../middleware/validateRegistration');
 const authMiddleware = require('../middleware/auth');
+const authorize = require('../middleware/roleAuth');
 
 const {signupVisitor, loginVisitor, registerEvent, allEventDetials, getticket, isExist, sentOtp, verifyOtp, allEvent} = require('../controllers/visitor');
 
@@ -15,7 +16,7 @@ router.post('/signup', signupVisitor);
 router.post('/login', loginVisitor);
 
 // Registarion of event 
-router.post('/registration',  authMiddleware, upload.single("photo"),  registerEvent);
+router.post('/registration',  authMiddleware, authorize(['visitor']), upload.single("photo"),  registerEvent);
 
 // All registred event
 router.get('/allregistredevent', authMiddleware , allEventDetials);

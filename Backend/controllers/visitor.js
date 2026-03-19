@@ -198,7 +198,7 @@ exports.signupVisitor =  async (req, res) => {
         },   process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
-            visitor, token
+            name:  visitor.name, role:  visitor.role, token
         })
 
     } catch (error) {
@@ -232,7 +232,7 @@ exports.loginVisitor = async (req, res) => {
         },   process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
-            visitor, token
+           name:  visitor.name, role:  visitor.role, token
         })
 
 

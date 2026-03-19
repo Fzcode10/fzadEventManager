@@ -22,10 +22,12 @@ export const AuthProvider  = ({ children }) => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    // console.log(user);
+    const userDetials = localStorage.getItem("userDetials");
+    // console.log(userDetials);
+    const userD = JSON.parse(userDetials);
 
-    if (user) {
-      dispatch({ type: "LOGIN", payload: user });
+    if (user ) {
+      dispatch({ type: "LOGIN", payload: {user, name:userD.name, role:userD.role }});
     }
   }, []);
 
