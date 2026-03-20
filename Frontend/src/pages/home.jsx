@@ -1,7 +1,9 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../Context/AuthContext';
-import VisitorHome from '../components/visitor/homeVisitor';
+import VisitorDahsboard from '../components/visitor/visitorDashboard';
 import QRScanner from './../components/security/scanQr';
+import HostDashboard from '../components/host/hostDashboard';
+import AdminDashBoard from '../components/admin/adminDashboard';
 // Import other roles as needed
 
 const Home = () => {
@@ -19,22 +21,26 @@ const Home = () => {
     // 2. Separate views based on role
     // Using a simple return pattern
     if (user.role === 'visitor') {
-        return <VisitorHome />;
+        return <VisitorDahsboard />;
     }
 
     if (user.role === 'security') {
         return <QRScanner />;
     }
 
-    // if (user.role === 'admin') {
-    //     return <AdminDashboard />; // If you have one
-    // }
+    if (user.role === 'host') {
+        return <HostDashboard/>; 
+    }
+
+    if( user.role === 'admin'){
+        return <AdminDashBoard/>
+    }
 
     // 3. Fallback for undefined roles
     return (
         <div className="p-10 text-center">
             <h1 className="text-2xl font-bold text-red-500">Access Error</h1>
-            <p>Role "{user.role}" is not recognized by the system.</p>
+            <p>Role {user.role} is not recognized by the system.</p>
         </div>
     );
 };

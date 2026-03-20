@@ -23,7 +23,7 @@ export const Signup = () => {
         // local storage
         localStorage.setItem("user", JSON.stringify(json.token));
         localStorage.setItem(
-          "userDetials",
+          "userDetails",
           JSON.stringify({
             name: json.name,
             role: json.role,

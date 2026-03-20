@@ -2,37 +2,59 @@ import { useReducer, createContext, useEffect } from "react";
 
 export const AuthContext = createContext();
 
-export const visitorAuthReducer = (state, action) => {
+// ✅ Reducer
+export const authReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN":
-      return { user: action.payload };
+      return {
+        user: action.payload,
+      };
+
     case "LOGOUT":
-      return { user: null };
+      return {
+        user: null,
+      };
+
     default:
       return state;
   }
 };
 
-export const AuthProvider  = ({ children }) => {
-  const [state, dispatch] = useReducer(visitorAuthReducer, {
+// ✅ Provider
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, {
     user: null,
   });
 
-  // console.log("auth : ", state);
-
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const userDetials = localStorage.getItem("userDetials");
-    // console.log(userDetials);
-    const userD = JSON.parse(userDetials);
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedUserDetails = localStorage.getItem("userDetails");
 
-    if (user ) {
-      dispatch({ type: "LOGIN", payload: {user, name:userD.name, role:userD.role }});
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userDetails = storedUserDetails
+        ? JSON.parse(storedUserDetails)
+        : null;
+
+      if (user && userDetails) {
+        dispatch({
+          type: "LOGIN",
+          payload: {
+            ...user,
+            name: userDetails.name,
+            role: userDetails.role,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error parsing auth data:", error);
+      localStorage.removeItem("user");
+      localStorage.removeItem("userDetails");
     }
   }, []);
 
   return (
-    <AuthContext.Provider  value={{ ...state, dispatch }}>
+    <AuthContext.Provider value={{ user: state.user, dispatch }}>
       {children}
     </AuthContext.Provider>
   );

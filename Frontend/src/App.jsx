@@ -9,6 +9,7 @@ import Footer from "./components/footer";
 import { AuthContext } from "./Context/AuthContext";
 import Profile from "./components/profile";
 import RegisteredEvents from "./components/visitor/visitorEventDetials";
+import ManageEvent from './components/host/ManageEvent';
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -43,6 +44,9 @@ function App() {
           />
 
           <Route path="/profile" element={<Profile />} />
+
+          <Route path="/host/manage/:id" element={user ? <ManageEvent/> : <Navigate to="/"/>}/>
+          
         </Routes>
       </div>
       <Footer />

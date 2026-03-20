@@ -5,6 +5,7 @@ const VisitorRoute = require('./routes/visitorRoute');
 const HostRoute = require('./routes/hostRoute');
 const Security = require('./routes/securityRoute');
 const Admin = require('./routes/adminRoute');
+const Event = require('./routes/eventRoute');
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/security', Security);
 app.use('/api/visitor', VisitorRoute);
 app.use('/api/host', HostRoute);
 app.use('/api/admin', Admin);
+app.use('/api/event', Event);
 
 
 

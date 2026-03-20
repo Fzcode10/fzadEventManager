@@ -34,7 +34,7 @@ export const useLogin = () => {
             if(res.ok){
                 // local storage
                 localStorage.setItem("user" , JSON.stringify(json.token));
-                localStorage.setItem( "userDetials", JSON.stringify({ name:json.name,role: json.role, token: json.token }));
+                localStorage.setItem( "userDetails", JSON.stringify({ name:json.name,role: json.role, token: json.token }));
 
                 dispatch({type: 'LOGIN', payload: {name: json.name, role: json.role, token: json.token}});
 
