@@ -93,7 +93,7 @@ export default function RegisteredEvents() {
               No registrations found.
             </p>
             <button 
-              onClick={() => navigate('/events')} 
+              onClick={() => navigate('/')} 
               className="mt-4 text-blue-600 font-bold hover:underline"
             >
               Browse upcoming events →
