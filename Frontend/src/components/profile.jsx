@@ -77,28 +77,28 @@ const Profile = () => {
       );
     }
 
-    if (role === "host") {
-      return (
-        <div className="mt-6 space-y-3">
-          <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
-            <h3 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-3">Event Hosting Summary</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
-                <p className="text-[10px] text-slate-400 uppercase font-bold">Completed</p>
-                <p className="text-lg font-bold text-indigo-600">12</p>
-              </div>
-              <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
-                <p className="text-[10px] text-slate-400 uppercase font-bold">Upcoming</p>
-                <p className="text-lg font-bold text-blue-600">2</p>
-              </div>
-            </div>
-            <button className="w-full mt-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all">
-              Manage Dashboard
-            </button>
-          </div>
-        </div>
-      );
-    }
+    // if (role === "host") {
+    //   return (
+    //     <div className="mt-6 space-y-3">
+    //       <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+    //         <h3 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-3">Event Hosting Summary</h3>
+    //         <div className="grid grid-cols-2 gap-2">
+    //           <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
+    //             <p className="text-[10px] text-slate-400 uppercase font-bold">Completed</p>
+    //             <p className="text-lg font-bold text-indigo-600">12</p>
+    //           </div>
+    //           <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
+    //             <p className="text-[10px] text-slate-400 uppercase font-bold">Upcoming</p>
+    //             <p className="text-lg font-bold text-blue-600">2</p>
+    //           </div>
+    //         </div>
+    //         <button className="w-full mt-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all">
+    //           Manage Dashboard
+    //         </button>
+    //       </div>
+    //     </div>
+    //   );
+    // }
 
     // Return nothing for Admin or undefined roles
     return null;

@@ -1,4 +1,4 @@
-const EventRequest = require('../models/events/eventRequest');
+const EventDetials = require('../models/eventDetiials');
 const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 
 exports.eventDetials = async (req, res) => {
@@ -9,7 +9,7 @@ exports.eventDetials = async (req, res) => {
             throw Error("Event Id not provided");
         }
 
-        const event = await EventRequest.findOne({eventId : id});
+        const event = await EventDetials.findOne({eventId : id});
 
         if(!event){
             throw Error("Event not found");
@@ -33,8 +33,9 @@ exports.eventVisitorRegister = async (req, res) => {
             throw Error("Event Id not provided");
         }
 
-        const visitors = await VisitorRrgistrationodule.find({eventId : id});
+        const visitors = await VisitorRrgistrationodule.find({eventId : id}).select("fullName email phone collegeName department year paymentStatus registrationId");
 
+        // console.log(visitors);
         if(!visitors){
             throw Error("Visitor not found");
         }

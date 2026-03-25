@@ -26,6 +26,10 @@ const HostDashboard = () => {
         },
       });
 
+      console.log(response);
+      // const text = await response.text();
+      // console.log("RAW RESPONSE:", text);
+
       const data = await response.json();
       if (response.ok && data.success) {
         setEvents(data.data || []);
@@ -224,10 +228,11 @@ const HostDashboard = () => {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
-                          Total Sloat
+                          {/* Total Sloat */}
+                          {event.status === "approved" ? "Remaimn Slots" : "Total Slots"}
                         </span>
                         <span className="text-[11px] font-bold text-slate-600">
-                          {event.slots === 0 ? "Open" : `${event.slots} Slots`}
+                          {event.remaningSlots === 0 ? "Booking Completed" : `${event.remaningSlots} Slots`}
                         </span>
                       </div>
                     </div>
@@ -254,7 +259,7 @@ const HostDashboard = () => {
                         <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
                           Host
                         </span>
-                        <span className="text-[11px] font-bold text-slate-600 truncate max-w-25">
+                        <span className="text-[11px] font-bold text-slate-600 truncate max-w-50">
                           {event.eventOrganizer}
                         </span>
                       </div>

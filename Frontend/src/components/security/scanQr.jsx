@@ -90,6 +90,7 @@ function QRScanner() {
         profilePic: json.visitor.photo || DEFAULT_AVATAR,
         eventName: json.visitor.eventName,
         passType: json.visitor.passType || "Guest",
+        organization:json.visitor.collegeName,
         entryTime: new Date().toLocaleTimeString(),
         status: json.action === "OUT" ? "Checked Out" : "Verified In",
         action: json.action,

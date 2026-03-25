@@ -26,13 +26,18 @@ const OrganizeEventModal = ({ isOpen, onClose, onRefresh }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const getMinDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 10); // add 10 days
+    return today.toISOString().split("T")[0];
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("user"); // ✅ get token
-
+      const token = localStorage.getItem("user"); 
       if (!token) {
         alert("Please login first");
         return;
@@ -42,7 +47,7 @@ const OrganizeEventModal = ({ isOpen, onClose, onRefresh }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 send token
+          Authorization: `Bearer ${token}`, 
         },
         body: JSON.stringify(formData),
       });
@@ -163,6 +168,7 @@ const OrganizeEventModal = ({ isOpen, onClose, onRefresh }) => {
                 name="dateOFEvent"
                 type="date"
                 required
+                min={getMinDate()}
                 className="w-full border-gray-200 border-2 p-3 rounded-xl outline-none focus:border-blue-500 transition-all"
                 onChange={handleChange}
               />

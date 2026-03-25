@@ -10,7 +10,7 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
     year: "",
     // Take data from the event prop passed by VisitorHome
     eventName: event?.title || "",
-    eventId: event?._id || "", 
+    eventId: event?.eventId || "", 
   });
 
   const [photo, setPhoto] = useState(null);
@@ -24,7 +24,7 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
       setFormData(prev => ({
         ...prev,
         eventName: event.title,
-        eventId: event._id
+        eventId: event.eventId
       }));
     }
   }, [event]);

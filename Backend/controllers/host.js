@@ -1,7 +1,7 @@
 const visitorCheckStatusModule = require('../models/visitorCheckInOut');
 const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 const sendMail = require('../utils/mailSender');
-const EventRequest = require('../models/events/eventRequest');
+const EventDetials = require('../models/eventDetiials');
 const { nanoid } = require('nanoid');
 
 const createUniqueId = () => {
@@ -46,7 +46,7 @@ exports.makeFreeAndInvitation = async (req, res) => {
 
     const visitor = await VisitorRrgistrationodule.findOneAndUpdate(
       { email, eventName },
-      { paymentStatus: "Free" },
+      { paymentStatus: "free" },
       { new: true }
     );
 
@@ -104,17 +104,20 @@ exports.sendInvite = async (req, res) => {
 exports.getUpcomingEvents = async (req, res) => {
   try {
     const token = req.user;
-    // console.log(token);
+    console.log(req.user);
 
-    const events = await EventRequest.find({ hostId: token.id }).select("title description dateOFEvent location slots status category eventId");
+    const events = await EventDetials.find({ hostId: token.id }).select("title description dateOFEvent location remaningSlots status category eventId eventOrganizer");
 
-    if (events.length === 0) {
+    if (events.length === 0 || !events) {
       return res.status(200).json({
         success: true,
         message: "No events scheduled yet",
         data: []
       });
     }
+
+    // console.log("api hit");
+    // console.log(token.id);
 
     return res.status(200).json({
       success: true,
@@ -152,30 +155,86 @@ exports.createEventRequest = async (req, res) => {
 
     const eventId = createUniqueId();
 
-    // 🔥 If this fails → it goes directly to catch
-    const event = await EventRequest.create({
+
+    const event = await EventDetials.create({
       title,
       eventOrganizer,
       description,
       dateOFEvent,
       location,
       category,
-      slots,
+      remaningSlots: slots,
       hostId: token.id,
       eventId: eventId
     });
 
     return res.status(201).json({
       success: true,
-      message: "Event request sent successfully",
-      data: event
+      message: "Event request sent successfully"
     });
 
   } catch (error) {
-    // 🔥 Send proper error to frontend
+
     return res.status(500).json({
       success: false,
       message: error.message || "Database Error"
+    });
+  }
+};
+
+exports.setApproval = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(req.params, req.body);
+    const { status } = req.body;
+    if (!id || !status) {
+      return res.status(400).json({
+        success: false,
+        msg: "RegistrationId or status not available",
+      });
+    }
+
+    if (!["success", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid status value",
+      });
+    }
+
+    let approveStatus;
+
+    if (status === "success") {
+      approveStatus = "success";
+    } else {
+      approveStatus = "rejected";
+    }
+
+
+
+    const visitor = await VisitorRrgistrationodule.findOneAndUpdate(
+      { registrationId: id },
+      { $set: { paymentStatus: approveStatus } }
+    );
+
+    if (!visitor) {
+      return res.status(404).json({
+        success: false,
+        msg: "Visitor not found",
+      });
+    }
+
+    console.log(visitor);
+
+    return res.status(200).json({
+      success: true
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      msg: "Approval failed",
     });
   }
 };

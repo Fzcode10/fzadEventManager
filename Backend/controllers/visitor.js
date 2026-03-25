@@ -247,7 +247,7 @@ exports.loginVisitor = async (req, res) => {
 // Registration for event 
 exports.registerEvent = async (req, res) => {
 
-    // console.log(req.body.fullName);
+    console.log(req.body);
 
     if (!req.body) {
         return res.status(400).json({ error: "Request body missing" });
@@ -322,17 +322,20 @@ exports.allEventDetials = async (req, res) => {
 
     // 3. Get events
     const events = await EventDetials.find({
-      _id: { $in: eventIds },
-    });
+      eventId: { $in: eventIds }
+    }).select ("title description eventOrganizer dateOFEvent location category bookingStatus eventId").lean();
+
+    console.log(events);
+    // console.log(eventIds);
 
     // 4. Merge event + paymentStatus
     const finalData = events.map((event) => {
       const registration = registrations.find(
-        (r) => r.eventId.toString() === event._id.toString()
+        (r) => r.eventId.toString() === event.eventId.toString()
       );
 
       return {
-        ...event.toObject(),
+        ...event,
         paymentStatus: registration?.paymentStatus || "pending",
       };
     });
@@ -393,10 +396,10 @@ exports.getticket = async (req, res) => {
 
 exports.allEvent = async (req, res) => {
     try{
-        const events = await EventDetials.find({bookingStatus: true});
+        const events = await EventDetials.find({ status: 'approved' });
 
         if(!events){
-            throw Error("Unable tofind events");
+            throw Error("Unable to find events");
         }
 
         return res.status(200).json({

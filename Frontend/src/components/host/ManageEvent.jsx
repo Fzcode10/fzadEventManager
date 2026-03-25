@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 const ManageEvent = () => {
   const { id } = useParams();
 
-  //   console.log(id);
+  // console.log(useParams());
 
   const [event, setEvent] = useState(null);
   const [activeTab, setActiveTab] = useState("visitors");
@@ -130,15 +130,29 @@ const ManageEvent = () => {
     fetchEvent();
     fetchVisitors();
   }, [id]);
-  // 🔹 Approve Visitor
-  const approveVisitor = (id) => {
-    console.log("Approve visitor:", id);
-    // call backend later
-  };
 
-  // 🔹 Reject Visitor
-  const rejectVisitor = (id) => {
-    console.log("Reject visitor:", id);
+  const approval = async (registrationId, paymentStatus) => {
+    console.log("Approve visitor:", registrationId, paymentStatus);
+
+    try {
+      const res = await fetch(`/api/host/approval/${registrationId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: paymentStatus }),
+      });
+
+      if (res.ok) {
+        setVisitor((prev) =>
+          prev.map((v) =>
+            v.registrationId === registrationId ? { ...v, paymentStatus } : v,
+          ),
+        );
+      }
+    } catch (error) {
+      setError(error.message || "Unable to reject approval!");
+    }
   };
 
   useEffect(() => {
@@ -191,7 +205,6 @@ const ManageEvent = () => {
 
       {/* 🔥 Tab Content */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border">
-        
         {/* 👥 Visitors */}
         {activeTab === "visitors" && (
           <div>
@@ -252,13 +265,17 @@ const ManageEvent = () => {
                           {v.paymentStatus === "pending" && (
                             <>
                               <button
-                                onClick={() => approveVisitor(v.id)}
+                                onClick={() =>
+                                  approval(v.registrationId, "success")
+                                }
                                 className="inline-block rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition"
                               >
                                 Approve
                               </button>
                               <button
-                                onClick={() => rejectVisitor(v.id)}
+                                onClick={() =>
+                                  approval(v.registrationId, "rejected")
+                                }
                                 className="inline-block rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition"
                               >
                                 Reject
@@ -266,7 +283,8 @@ const ManageEvent = () => {
                             </>
                           )}
 
-                          {v.paymentStatus === "Free" && (
+                          {(v.paymentStatus === "free" ||
+                            v.paymentStatus === "success") && (
                             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-sm">
                               {/* Success Check Icon */}
                               <svg
@@ -286,11 +304,9 @@ const ManageEvent = () => {
                             </div>
                           )}
 
-                          {v.status === "approved" && (
-                            <span className="inline-flex items-center justify-center rounded-full bg-green-100 px-2.5 py-0.5 text-green-700">
-                              <p className="whitespace-nowrap text-xs font-semibold">
-                                Approved
-                              </p>
+                          {v.paymentStatus === "rejected" && (
+                            <span className="px-3 py-1 text-xs font-semibold text-red-600 border border-red-300 bg-red-50 rounded-full">
+                              Rejected
                             </span>
                           )}
                         </div>
@@ -347,7 +363,7 @@ const ManageEvent = () => {
               <strong>Organizer : </strong> {event.eventOrganizer}
             </p>
             <p>
-              <strong>Slots:</strong> {event.slots}
+              <strong>Slots:</strong> {event.remaningSlots}
             </p>
             <p>
               <strong>Status:</strong> {event.status}

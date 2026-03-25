@@ -40,7 +40,7 @@ const visitorSchema = new mongoose.Schema({
   },
 
   year: {
-    type: String,   // e.g., "1st Year", "2nd Year"
+    type: String,   
   },
 
   eventName: {
@@ -49,7 +49,7 @@ const visitorSchema = new mongoose.Schema({
     default: "fzad"
   },
 
-  photo: {              // 👈 Added here
+  photo: {              
     type: String
   },
 
@@ -65,8 +65,8 @@ const visitorSchema = new mongoose.Schema({
 
   paymentStatus: {
     type: String,
-    enum: ["Pending", "Completed", "Free"],
-    default: "Pending"
+    enum: ["pending", "success", "free", "rejected"],
+    default: "pending"
   },
   
   eventStatus :{
