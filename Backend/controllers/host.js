@@ -106,7 +106,7 @@ exports.getUpcomingEvents = async (req, res) => {
     const token = req.user;
     console.log(req.user);
 
-    const events = await EventDetials.find({ hostId: token.id }).select("title description dateOFEvent location remaningSlots status category eventId eventOrganizer");
+    const events = await EventDetials.find({ hostId: token.id }).select("title description dateOFEvent location remaningSlots status updateStatus category eventId eventOrganizer");
 
     if (events.length === 0 || !events) {
       return res.status(200).json({

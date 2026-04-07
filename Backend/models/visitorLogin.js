@@ -26,6 +26,9 @@ const VisitorLoginSchema = new mongoose.Schema({
         type: String,
         enum: ["admin", "host", "visitor", "security"],
         default: "visitor"
+    }, createdBy:{
+        type: String,
+        default: "visitor"
     }
 }, {
     timestamps: true

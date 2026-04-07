@@ -34,12 +34,16 @@ const eventSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['approved', 'pending', 'rejected'],
+    enum: ['approved', 'pending', 'rejected', "completed"],
     default: 'pending'
   },
   bookingStatus:{
     type: Boolean,
     required: true,
+    default: false
+  },
+  updateStatus: {
+    type: Boolean,
     default: false
   },
   hostId: {
