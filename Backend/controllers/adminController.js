@@ -1,6 +1,7 @@
 const VisitorLoginModule = require('../models/visitorLogin');
 const jwt = require('jsonwebtoken');
 const EventDetials = require('../models/eventDetiials');
+const { nanoid } = require('nanoid');
 const sendMail = require('../utils/mailSender');
 
 exports.getProfile = async (req, res) => {
@@ -39,6 +40,15 @@ exports.getProfile = async (req, res) => {
 
 exports.createEvent = async (req, res) => {
     try {
+        const decoded = req.user;
+
+        if (!decoded || decoded.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only admin can create events'
+            });
+        }
+
         const { 
             title, 
             eventOrganizer, 
@@ -49,7 +59,7 @@ exports.createEvent = async (req, res) => {
             remaningSlots 
         } = req.body;
 
-        // Validation check (Optional but recommended)
+        // Validation check
         if (!title || !eventOrganizer || !dateOFEvent || !location || !remaningSlots) {
             return res.status(400).json({ 
                 success: false, 
@@ -57,7 +67,10 @@ exports.createEvent = async (req, res) => {
             });
         }
 
-        // Create the new event
+        // Generate a unique eventId (required by schema)
+        const eventId = `${nanoid(10).toUpperCase()}`;
+
+        // Create the new event with all required schema fields
         const newEvent = new EventDetials({
             title,
             eventOrganizer,
@@ -66,7 +79,8 @@ exports.createEvent = async (req, res) => {
             location,
             category,
             remaningSlots,
-            createdBy:  "Faiz" // Assigning the ID from your auth middleware
+            hostId: decoded.id,   // required by schema
+            eventId: eventId      // required by schema
         });
 
         // Save to MongoDB

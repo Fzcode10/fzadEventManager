@@ -61,10 +61,12 @@ const ManageEvent = () => {
         return;
       }
 
+      const token = localStorage.getItem("user");
       const res = await fetch(`/api/host/sendinvite`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           email,
@@ -135,10 +137,12 @@ const ManageEvent = () => {
     console.log("Approve visitor:", registrationId, paymentStatus);
 
     try {
+      const token = localStorage.getItem("user");
       const res = await fetch(`/api/host/approval/${registrationId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: paymentStatus }),
       });

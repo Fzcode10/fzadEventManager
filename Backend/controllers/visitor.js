@@ -370,7 +370,7 @@ exports.getticket = async (req, res) => {
             return res.status(400).json({ error: "Event completed" });
         }
 
-        if (visitor.paymentStatus === "Pending") {
+        if (visitor.paymentStatus === "pending") {
             return res.status(403).json({ error: "Waiting for permission" });
         }
 

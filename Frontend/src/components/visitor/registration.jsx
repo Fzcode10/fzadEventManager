@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const RegistrationForm = ({ event, onSuccess, onError }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   // Sync event details if the event changes
   useEffect(() => {

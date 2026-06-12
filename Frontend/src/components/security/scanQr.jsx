@@ -154,10 +154,14 @@ function QRScanner() {
         throw new Error("Invalid QR Format");
       }
 
+      const token = localStorage.getItem("user");
       const res = await fetch("/api/security/checkin/visitor", {
         method: "POST",
         body: JSON.stringify({ registrationId: parsedData.registrationId }),
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
       });
 
       const json = await res.json();

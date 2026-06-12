@@ -16,7 +16,7 @@ const visitorSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    // unique: true, // if this unique then user can't register in multiple events so we have to cheeck this on registration with aline of email and eventId
     lowercase: true
   },
 
@@ -80,7 +80,7 @@ const visitorSchema = new mongoose.Schema({
 
 visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, photo, year, eventName, eventId , userId ){
   const exists = await VisitorLoginModule.findOne({email});
-  const alreadyRegister = await this.findOne({email, eventName});
+  const alreadyRegister = await this.findOne({email, eventId});
 
   if(!exists) {
     throw Error("Signup first");

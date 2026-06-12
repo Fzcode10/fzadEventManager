@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/getprofile', authMiddleware, getProfile);
 
-router.post('/createevent', createEvent);
+router.post('/createevent', authMiddleware, createEvent);
 
 router.get('/allevents', authMiddleware, allEvents);
 

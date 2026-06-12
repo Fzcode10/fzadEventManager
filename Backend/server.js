@@ -33,4 +33,4 @@ app.use('/api/event', Event);
 const PORT = process.env.PORT;
 app.listen( PORT, () => {
     console.log(`App listing on http://localhost:${PORT}`)
-;})
+})
