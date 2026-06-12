@@ -23,7 +23,9 @@ function GenerateQR({ event, onBack }) {
       if (!token) return;
 
       const cleanToken = token.replace(/"/g, "");
-      const eventId = event.id;
+      const eventId = event.eventId;
+
+      console.log(eventId);
 
       const res = await fetch("/api/visitor/ticket", {
         method: "POST",

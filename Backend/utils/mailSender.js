@@ -10,6 +10,8 @@ const sendMail = async (to, subject, html) => {
         }
     });
 
+    await transporter.verify();
+
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to,
@@ -17,7 +19,7 @@ const sendMail = async (to, subject, html) => {
         html
     };
 
-    console.log(transporter);
+    // console.log(transporter);
 
     const mailResponse = await transporter.sendMail(mailOptions);
     console.log(process.env.EMAIL_USER);
