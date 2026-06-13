@@ -44,6 +44,14 @@ exports.makeFreeAndInvitation = async (req, res) => {
       return res.status(400).json({ error: "Request body not complete" });
     }
 
+    const eventDetials = await EventDetials.findOne({eventName});
+
+    if(!eventDetials) {
+      return res.status(400).json({error: "Event not find"});
+    }
+
+    const remainslot = eventDetials.remaningSlots;
+
     const visitor = await VisitorRrgistrationodule.findOneAndUpdate(
       { email, eventName },
       { paymentStatus: "free" },
@@ -185,8 +193,10 @@ exports.createEventRequest = async (req, res) => {
 exports.setApproval = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(req.params, req.body);
     const { status } = req.body;
+
+    console.log(req.params, req.body);
+
     if (!id || !status) {
       return res.status(400).json({
         success: false,
@@ -201,20 +211,9 @@ exports.setApproval = async (req, res) => {
       });
     }
 
-    let approveStatus;
-
-    if (status === "success") {
-      approveStatus = "success";
-    } else {
-      approveStatus = "rejected";
-    }
-
-
-
-    const visitor = await VisitorRrgistrationodule.findOneAndUpdate(
-      { registrationId: id },
-      { $set: { paymentStatus: approveStatus } }
-    );
+    const visitor = await VisitorRrgistrationodule.findOne({
+      registrationId: id,
+    });
 
     if (!visitor) {
       return res.status(404).json({
@@ -223,18 +222,69 @@ exports.setApproval = async (req, res) => {
       });
     }
 
-    console.log(visitor);
+    const eventId = visitor.eventId;
+
+    const eventDetials = await EventDetials.findOne({ eventId });
+
+    if (!eventDetials) {
+      return res.status(404).json({
+        success: false,
+        msg: "Event not found",
+      });
+    }
+
+    // APPROVE
+    if (status === "success") {
+      const updatedEvent = await EventDetials.findOneAndUpdate(
+        {
+          eventId,
+          remaningSlots: { $gt: 0 },
+        },
+        {
+          $inc: { remaningSlots: -1 },
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (!updatedEvent) {
+        return res.status(400).json({
+          success: false,
+          msg: "Slots are full or event not found",
+        });
+      }
+    }
+
+
+    const updatedVisitor =
+      await VisitorRrgistrationodule.findOneAndUpdate(
+        { registrationId: id },
+        {
+          $set: {
+            paymentStatus: status,
+          },
+        },
+        {
+          new: true,
+        }
+      );
 
     return res.status(200).json({
-      success: true
+      success: true,
+      msg:
+        status === "success"
+          ? "Visitor approved successfully"
+          : "Visitor rejected successfully",
+      data: updatedVisitor,
     });
-
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
       success: false,
       msg: "Approval failed",
+      error: error.message,
     });
   }
 };

@@ -7,7 +7,18 @@ import {
   ShieldAlert,
   UserPlus,
   Activity,
-} from "lucide-react"; // Using lucide-react for icons
+  Sparkles,
+  AlertCircle,
+  ShieldCheck,
+  MapPin,
+  TrendingUp,
+  X,
+  Lock,
+  Mail,
+  User,
+  Clock,
+  Plus
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
 
@@ -81,11 +92,17 @@ const AdminDashBoard = () => {
       // 4. Success State
       setError(null);
       setAddStaff(false);
-      // Optional: Refresh your staff list here or show a toast notification
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+      });
+      alert("🎉 Staff added successfully!");
     } catch (error) {
       setError(error.message);
     } finally {
-      // This ensures loading is stopped regardless of success or failure
       setLoading(false);
     }
   };
@@ -107,25 +124,25 @@ const AdminDashBoard = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Mock Data for UI demonstration
+  // Modern styled stats cards in dark theme
   const stats = [
     {
       label: "Active Visitors",
       value: "12",
-      color: "text-green-600",
-      icon: <Activity size={20} />,
+      color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+      icon: <Activity size={18} />,
     },
     {
       label: "Pending Invites",
       value: "05",
-      color: "text-blue-600",
-      icon: <UserPlus size={20} />,
+      color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+      icon: <UserPlus size={18} />,
     },
     {
       label: "Security Alerts",
       value: "02",
-      color: "text-red-600",
-      icon: <ShieldAlert size={20} />,
+      color: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+      icon: <ShieldAlert size={18} />,
     },
   ];
 
@@ -262,27 +279,29 @@ const AdminDashBoard = () => {
 
   const getStatusClasses = (status) => {
     if (status === "approved") {
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-emerald-950/40 border border-emerald-900/30 text-emerald-400 badge-glow-success";
     }
 
     if (status === "pending") {
-      return "bg-amber-100 text-amber-700";
+      return "bg-amber-950/40 border border-amber-900/30 text-amber-400";
     }
 
     if (status === "rejected") {
-      return "bg-red-100 text-red-700";
+      return "bg-red-950/40 border border-red-900/30 text-red-400";
     }
 
-    return "bg-slate-100 text-slate-700";
+    return "bg-slate-900 border border-slate-800 text-slate-400";
   };
 
   const renderEventsTab = () => (
     <div className="animate-fadeIn">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold">Visitor Events</h2>
-          <p className="text-sm text-gray-500">
-            Filter by category and see only today&apos;s live events.
+          <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <Calendar className="text-violet-400" size={20} /> Visitor Events
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Filter by category and track current or incoming visitor event schedules.
           </p>
         </div>
 
@@ -290,10 +309,10 @@ const AdminDashBoard = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 outline-none focus:border-violet-500 cursor-pointer transition-all"
           >
             {categories.map((category) => (
-              <option key={category} value={category}>
+              <option key={category} value={category} className="bg-slate-900 text-slate-200">
                 {category === "all" ? "All Categories" : category}
               </option>
             ))}
@@ -302,77 +321,79 @@ const AdminDashBoard = () => {
           <button
             type="button"
             onClick={() => setLiveOnly((prev) => !prev)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border ${
               liveOnly
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                : "bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-250"
             }`}
           >
-            {liveOnly ? "Live: ON" : "Live: OFF"}
+            <span className={`w-1.5 h-1.5 rounded-full ${liveOnly ? "bg-emerald-400 animate-pulse" : "bg-slate-600"}`}></span>
+            {liveOnly ? "Live: Active" : "Live Events Off"}
           </button>
         </div>
       </div>
 
       {loading && (
-        <div className="mb-4 rounded-lg bg-blue-50 text-blue-700 px-4 py-2 text-sm font-medium">
-          Loading events...
+        <div className="mb-4 rounded-xl bg-violet-950/20 border border-violet-900/30 text-violet-400 px-4 py-3 text-xs font-bold uppercase tracking-wider animate-pulse">
+          Refreshing events schedule...
         </div>
       )}
 
       {error && (
-        <div className="mb-4 rounded-lg bg-red-50 text-red-700 px-4 py-2 text-sm font-medium">
+        <div className="mb-4 rounded-xl bg-red-950/30 border border-red-900/30 text-red-400 px-4 py-3 text-xs font-bold flex items-center gap-2">
+          <AlertCircle size={14} />
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="p-4 font-semibold">Title</th>
-              <th className="p-4 font-semibold">Category</th>
-              <th className="p-4 font-semibold">Date</th>
-              <th className="p-4 font-semibold">Host</th>
-              <th className="p-4 font-semibold">Location</th>
-              <th className="p-4 font-semibold">Status</th>
-              <th className="p-4 font-semibold">Details</th>
+      <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/20 scrollbar-thin scrollbar-thumb-slate-800">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-slate-900/40 text-slate-400 uppercase font-black tracking-wider">
+            <tr className="border-b border-slate-800/80">
+              <th className="px-6 py-4">Title</th>
+              <th className="px-6 py-4">Category</th>
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Host</th>
+              <th className="px-6 py-4">Location</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4 text-center">Details</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-800/40 text-slate-350 font-medium">
             {!loading && events.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-gray-500">
-                  No events found for selected filters.
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-500 font-bold">
+                  No events schedule found matching the active filters.
                 </td>
               </tr>
             ) : (
               events.map((event) => (
-                <tr className="border-b hover:bg-gray-50" key={event._id}>
-                  <td className="p-4 font-medium text-gray-800">
+                <tr className="hover:bg-slate-900/20 transition-colors" key={event._id}>
+                  <td className="px-6 py-4 font-bold text-white whitespace-nowrap">
                     {event.title}
                   </td>
-                  <td className="p-4">{event.category}</td>
-                  <td className="p-4">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">{event.category}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(event.dateOFEvent).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
                     })}
                   </td>
-                  <td className="p-4">{event.eventOrganizer}</td>
-                  <td className="p-4 text-blue-700 font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">{event.eventOrganizer}</td>
+                  <td className="px-6 py-4 font-bold text-cyan-400 whitespace-nowrap">
                     {event.location}
                   </td>
-                  <td className="p-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${getStatusClasses(event.status)}`}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusClasses(event.status)}`}
                     >
                       {event.status}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
                     <button
-                      className="bg-amber-700 hover:bg-amber-800 text-white text-xs px-3 py-1.5 rounded-lg"
+                      className="bg-slate-900 border border-slate-800 hover:border-violet-500 hover:text-white text-slate-300 text-xs px-4 py-1.5 rounded-lg transition-all font-bold"
                       onClick={() => handleOpenEventDetials(event)}
                     >
                       Details
@@ -389,24 +410,37 @@ const AdminDashBoard = () => {
 
   const renderSystemTab = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">System Management</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <h3 className="font-semibold mb-2">Registration Settings</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Enable/Disable photo capture or NDA signing.
+      <div>
+        <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+          <Settings className="text-violet-400" size={20} /> System Management
+        </h2>
+        <p className="text-xs text-slate-400 mt-1">
+          Adjust security parameters, check-in requirements, and entry pass rules.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-6 bg-slate-950/40 border border-slate-800 rounded-2xl">
+          <h3 className="font-extrabold text-white mb-2 flex items-center gap-2">
+            <ShieldCheck size={16} className="text-cyan-400" /> Registration Settings
+          </h3>
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            Enable or disable required face photo capture verification or non-disclosure agreement (NDA) signing workflow on visitor check-in.
           </p>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded text-sm">
-            Configure Form
+          <button className="bg-gradient-accent text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:shadow-violet-500/25 transition-all">
+            Configure Workflow
           </button>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <h3 className="font-semibold mb-2">Pass Expiry Policy</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Set global checkout times for visitors.
+        
+        <div className="p-6 bg-slate-950/40 border border-slate-800 rounded-2xl">
+          <h3 className="font-extrabold text-white mb-2 flex items-center gap-2">
+            <Clock size={16} className="text-violet-400" /> Pass Expiry Policy
+          </h3>
+          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            Set global automated checkout thresholds and ticket expiration timers for student and visitor credentials.
           </p>
-          <button className="border border-indigo-600 text-indigo-600 px-4 py-2 rounded text-sm">
-            Update Policy
+          <button className="border border-slate-800 hover:border-slate-700 hover:bg-slate-900 text-slate-300 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">
+            Update Expiry Policy
           </button>
         </div>
       </div>
@@ -415,29 +449,51 @@ const AdminDashBoard = () => {
 
   const renderAnalyticsTab = () => (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-800">Insights & Analytics</h2>
-      <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-        <p className="text-gray-500 italic">
-          Chart.js / Recharts visualization would go here
+      <div>
+        <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+          <BarChart3 className="text-cyan-400" size={20} /> Insights & Analytics
+        </h2>
+        <p className="text-xs text-slate-400 mt-1">
+          Real-time charts illustrating entry pass frequency and registration curves.
+        </p>
+      </div>
+
+      <div className="h-72 bg-slate-950/40 border border-slate-850/80 rounded-2xl flex flex-col items-center justify-center border-dashed p-6 text-center">
+        <TrendingUp className="w-10 h-10 text-slate-600 mb-3" />
+        <p className="text-slate-400 font-bold text-sm">Visual Charting Engine</p>
+        <p className="text-slate-500 text-xs mt-1 max-w-sm">
+          Analytics dashboard visualizations and live entry statistics will compile here automatically.
         </p>
       </div>
     </div>
   );
 
   const renderUsersTab = () => (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Staff & Roles</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <Users className="text-violet-400" size={20} /> Staff & Roles
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Configure system access for admins, event hosts, and campus security staff.
+          </p>
+        </div>
         <button
-          className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          className="bg-gradient-accent text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:shadow-violet-500/25 transition-all"
           onClick={() => setAddStaff(true)}
         >
-          <UserPlus size={18} /> Add Staff
+          <Plus size={14} /> Add Staff
         </button>
       </div>
-      <p className="text-gray-600">
-        Manage Mentor, Admin, and Security roles here.
-      </p>
+      
+      <div className="p-8 text-center border border-slate-800 rounded-2xl bg-slate-950/20">
+        <Users className="w-12 h-12 text-slate-650 mx-auto mb-3" />
+        <p className="text-slate-400 font-bold text-sm">Role Matrix Active</p>
+        <p className="text-slate-500 text-xs mt-1 max-w-md mx-auto">
+          Hover over dynamic card slots to configure dashboard view authorizations for Host, Security, and Admin staff.
+        </p>
+      </div>
     </div>
   );
 
@@ -449,74 +505,101 @@ const AdminDashBoard = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto flex justify-between  bg-gray-50 ">
-      {/* Sidebar */}
-      <nav className="w-64 flex flex-col p-4 m-2 rounded-2xl border border-white/40 bg-white/30 backdrop-blur-md shadow-xl transition-all">
-        {/* Logo Section */}
-        <div className="mb-8 p-2 text-2xl font-black tracking-tighter text-indigo-600 drop-shadow-sm">
+    <div className="min-h-screen bg-slate-950 font-sans relative overflow-hidden text-slate-100 flex flex-col md:flex-row pb-24 md:pb-0">
+      {/* Glowing mesh background */}
+      <div className="absolute top-[10%] left-[-10%] w-[400px] h-[400px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Desktop Sidebar (hidden on mobile) */}
+      <nav className="hidden md:flex w-64 flex-col p-6 m-4 rounded-3xl border border-slate-800 bg-slate-900/40 backdrop-blur-md shadow-xl shrink-0 h-[calc(100vh-2rem)] sticky top-4">
+        {/* Brand */}
+        <div className="mb-10 text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
           FzAdEvents
         </div>
-
-        {/* Tabs Section */}
+        
+        {/* Tabs */}
         <div className="flex-1 space-y-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 ${
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-[1.02]"
-                  : "text-slate-600 hover:bg-white/50 hover:text-indigo-600 hover:shadow-sm"
+                  ? "bg-gradient-accent text-white shadow-lg shadow-violet-500/25 scale-[1.02]"
+                  : "text-slate-400 hover:bg-slate-850/50 hover:text-white"
               }`}
             >
-              <span
-                className={
-                  activeTab === tab.id ? "text-white" : "text-indigo-500"
-                }
-              >
+              <span className={activeTab === tab.id ? "text-white" : "text-violet-400"}>
                 {tab.icon}
               </span>
-              <span className="font-semibold">{tab.label}</span>
+              <span className="font-bold text-sm tracking-wide">{tab.label}</span>
             </button>
           ))}
         </div>
+        
+        {/* User Info / Profile Link in Sidebar footer */}
+        <div className="border-t border-slate-800 pt-4 mt-auto">
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Logged in as</p>
+          <p className="text-xs font-bold text-slate-400 truncate">{user?.email || "admin@fzadevents.com"}</p>
+        </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      {/* Mobile Sticky Bottom Tab Bar (hidden on desktop) */}
+      <nav className="flex md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/90 border-t border-slate-850 px-4 py-2.5 backdrop-blur-md justify-around items-center z-50">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+              activeTab === tab.id ? "text-violet-400" : "text-slate-400"
+            }`}
+          >
+            {tab.icon}
+            <span className="text-[9px] font-bold tracking-wider uppercase">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
         {/* Top Header Section */}
-        <header className="flex justify-between items-center mb-8">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 py-6 px-6 bg-slate-900/40 border border-slate-800 rounded-3xl backdrop-blur-md relative">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent"></div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 uppercase tracking-wide">
+            <span className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-black tracking-widest uppercase rounded-full w-fit flex items-center gap-1.5 mb-3">
+              <Sparkles size={10} /> Admin Panel
+            </span>
+            <h1 className="text-3xl font-black text-white tracking-tight leading-tight uppercase">
               {activeTab} Overview
             </h1>
-            <p className="text-gray-500 text-sm">
-              Welcome back, {user?.name || "Super Admin"}
+            <p className="text-slate-400 text-sm mt-1">
+              Welcome back, <span className="text-violet-400 font-bold">{user?.name || "Super Admin"}</span>
             </p>
           </div>
 
-          <div className="flex gap-4">
+          {/* Stats Bar */}
+          <div className="flex flex-wrap gap-4 w-full lg:w-auto">
             {stats.map((s, idx) => (
               <div
                 key={idx}
-                className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-3"
+                className="bg-slate-950/50 px-4 py-3 rounded-2xl border border-slate-850 flex items-center gap-3 flex-1 lg:flex-initial"
               >
-                <div className={`${s.color} bg-opacity-10 p-2 rounded`}>
+                <div className={`${s.color} p-2 rounded-xl border`}>
                   {s.icon}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 uppercase font-bold">
+                  <p className="text-[9px] text-slate-500 uppercase font-black tracking-wider">
                     {s.label}
                   </p>
-                  <p className="text-lg font-bold">{s.value}</p>
+                  <p className="text-lg font-black text-white leading-none mt-1">{s.value}</p>
                 </div>
               </div>
             ))}
           </div>
         </header>
 
-        {/* Tab Content Area */}
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-125">
+        {/* Tab Content Box */}
+        <section className="glass-panel border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-xl min-h-[450px]">
           {activeTab === "events" && renderEventsTab()}
           {activeTab === "system" && renderSystemTab()}
           {activeTab === "analytics" && renderAnalyticsTab()}
@@ -524,129 +607,100 @@ const AdminDashBoard = () => {
         </section>
       </main>
 
+      {/* Details Modal */}
       {eventDetialsPopup && selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-800">Event Details</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all duration-300">
+          <div className="w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto relative text-slate-100">
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+            
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="px-2.5 py-0.5 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[9px] font-black tracking-widest uppercase rounded-full w-fit flex items-center gap-1 mb-1">
+                  <Sparkles size={10} /> Specifications
+                </span>
+                <h3 className="text-xl font-black text-white leading-tight">Event Details</h3>
+              </div>
               <button
                 type="button"
                 onClick={handleCloseEventDetials}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="bg-slate-950/40 text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800 p-2 rounded-full transition-all"
               >
-                &times;
+                <X size={18} />
               </button>
             </div>
 
             <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Title</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.title}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Category</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.category}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Date</p>
-                  <p className="font-semibold text-gray-800">
-                    {new Date(selectedEvent.dateOFEvent).toLocaleDateString(
-                      "en-GB",
-                      {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      },
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Organizer</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.eventOrganizer}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Host Email</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.hostEmail || "Not available"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Location</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.location}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Remaining Slots</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.remaningSlots}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Event ID</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.eventId}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Status</p>
-                  <p className="font-semibold text-gray-800 capitalize">
-                    {selectedEvent.status}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Update Requested</p>
-                  <p className="font-semibold text-gray-800">
-                    {selectedEvent.updateStatus ? "Yes" : "No"}
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-950/30 border border-slate-850 p-5 rounded-2xl">
+                {[
+                  { label: "Title", value: selectedEvent.title },
+                  { label: "Category", value: selectedEvent.category },
+                  { label: "Location", value: selectedEvent.location },
+                  { label: "Organizer", value: selectedEvent.eventOrganizer },
+                  { label: "Host Email", value: selectedEvent.hostEmail || "Not available" },
+                  { label: "Slots Available", value: selectedEvent.remaningSlots },
+                  { label: "Event ID", value: selectedEvent.eventId },
+                  { label: "Current Status", value: selectedEvent.status, highlight: true },
+                  { label: "Update Requested", value: selectedEvent.updateStatus ? "Yes" : "No" },
+                  { 
+                    label: "Event Date", 
+                    value: new Date(selectedEvent.dateOFEvent).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }) 
+                  },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider mb-1">
+                      {item.label}
+                    </span>
+                    <span className={`text-xs font-bold ${item.highlight ? "text-violet-400 uppercase" : "text-slate-200"} truncate`}>
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
               </div>
 
               <div>
-                <p className="text-gray-500 text-sm">Description</p>
-                <p className="mt-1 text-gray-700 leading-relaxed">
-                  {selectedEvent.description}
-                </p>
+                <p className="text-[9px] font-black uppercase text-slate-500 tracking-wider mb-2">Description</p>
+                <div className="bg-slate-950/20 border border-slate-850 p-4 rounded-xl text-xs md:text-sm text-slate-450 leading-relaxed min-h-[80px]">
+                  {selectedEvent.description || "No description provided."}
+                </div>
               </div>
 
-              <div className="border-t pt-5 space-y-3">
-                <p className="font-semibold text-gray-800">
+              <div className="border-t border-slate-800 pt-5 space-y-3">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
                   Request Host Update
-                </p>
+                </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={updateInstruction}
                   onChange={(e) => setUpdateInstruction(e.target.value)}
-                  placeholder="Write instruction for host (e.g., change event date/time, update agenda, or modify plan)."
-                  className="w-full border border-gray-300 rounded-lg p-3 text-sm outline-none focus:border-indigo-500"
+                  placeholder="Specify feedback for host (e.g. adjust limits, schedule, or venue change)..."
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-slate-650 text-sm text-white resize-none"
                 />
               </div>
 
               {actionError && (
-                <div className="rounded-lg bg-red-50 text-red-700 px-4 py-2 text-sm font-medium">
+                <div className="rounded-xl bg-red-950/30 border border-red-900/30 text-red-400 p-4 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle size={14} className="shrink-0" />
                   {actionError}
                 </div>
               )}
 
               {actionMessage && (
-                <div className="rounded-lg bg-green-50 text-green-700 px-4 py-2 text-sm font-medium">
+                <div className="rounded-xl bg-emerald-950/30 border border-emerald-900/30 text-emerald-400 p-4 text-xs font-bold flex items-center gap-2">
+                  <ShieldCheck size={14} className="shrink-0" />
                   {actionMessage}
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800/80">
                 <button
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleEventAction("approve")}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                  className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
                 >
                   {actionLoading ? "Processing..." : "Approve"}
                 </button>
@@ -655,7 +709,7 @@ const AdminDashBoard = () => {
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleEventAction("reject")}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                  className="bg-red-500 hover:bg-red-650 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
                 >
                   {actionLoading ? "Processing..." : "Reject"}
                 </button>
@@ -664,7 +718,7 @@ const AdminDashBoard = () => {
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleEventAction("request-update")}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                  className="bg-gradient-accent text-white hover:shadow-violet-500/20 disabled:opacity-50 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
                 >
                   {actionLoading ? "Processing..." : "Send Update To Host"}
                 </button>
@@ -673,7 +727,7 @@ const AdminDashBoard = () => {
                   type="button"
                   disabled={actionLoading}
                   onClick={handleCloseEventDetials}
-                  className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold"
+                  className="border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ml-auto"
                 >
                   Close
                 </button>
@@ -683,156 +737,126 @@ const AdminDashBoard = () => {
         </div>
       )}
 
+      {/* Add Staff Modal */}
       {addStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-          {/* Animated Backdrop */}
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" />
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 bg-slate-950/80 backdrop-blur-md">
           {/* Modal Container */}
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 ease-out">
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl transition-all duration-300 text-slate-100">
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+            
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-black text-white leading-tight">
                   Add New Staff
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Create a new account for your team member or host.
+                <p className="mt-1 text-xs text-slate-400">
+                  Assign administrative credentials to team members.
                 </p>
               </div>
               <button
                 onClick={() => setAddStaff(false)}
-                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                className="bg-slate-950/40 text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800 p-2 rounded-full transition-all"
               >
-                <span className="sr-only">Close</span>
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X size={18} />
               </button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmitForm} className="p-6 space-y-5">
-              <div className="space-y-4">
-                {/* Name Field */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-900 transition-all focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                  />
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="john@company.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-900 transition-all focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Temporary Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-900 transition-all focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                  />
-                </div>
-
-                {/* role selection */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Assign Role
-                  </label>
-                  <div className="relative">
-                    <select
-                      type="role"
-                      name="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      className="w-full appearance-none rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 transition-all focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none cursor-pointer"
-                      required
-                    >
-                      <option value="">Select Role</option>
-                      <option value="admin">Admin</option>
-                      <option value="host">Host</option>
-                      <option value="visitor">Visitor</option>
-                      <option value="security">Security</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M19 9l-7 7-7-7"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+            <form onSubmit={handleSubmitForm} className="p-6 space-y-4">
+              {/* Name Field */}
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                  <User size={13} className="text-violet-400" /> Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="e.g. John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-slate-650 text-sm text-white"
+                />
               </div>
 
+              {/* Email Field */}
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                  <Mail size={13} className="text-cyan-400" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="recipient@fzadevents.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-slate-650 text-sm text-white"
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                  <Lock size={13} className="text-rose-400" /> Temporary Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all placeholder:text-slate-650 text-sm text-white"
+                />
+              </div>
+
+              {/* Role Selection */}
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">
+                  Assign Role
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all bg-slate-950 text-sm text-white cursor-pointer"
+                  required
+                >
+                  <option value="" className="bg-slate-900 text-slate-400">Select Role</option>
+                  <option value="admin" className="bg-slate-900 text-slate-200">Admin</option>
+                  <option value="host" className="bg-slate-900 text-slate-200">Host</option>
+                  <option value="visitor" className="bg-slate-900 text-slate-200">Visitor</option>
+                  <option value="security" className="bg-slate-900 text-slate-200">Security</option>
+                </select>
+              </div>
+
+              {/* Error Box */}
+              {error && (
+                <div className="rounded-xl bg-red-950/30 border border-red-900/30 text-red-400 p-3.5 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle size={14} className="shrink-0" />
+                  {error}
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-gray-50">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
                 <button
                   type="button"
                   onClick={() => setAddStaff(false)}
-                  className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="px-5 py-2.5 text-slate-400 font-bold hover:text-white hover:bg-slate-800/40 rounded-xl transition-all text-xs uppercase tracking-wider"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-200"
+                  disabled={loading}
+                  className="bg-gradient-accent text-white px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
                 >
-                  Create Staff Member
+                  {loading ? "Creating..." : "Create Member"}
                 </button>
-
-                {error && (
-                  <div className="rounded-lg bg-red-50 text-red-700 px-4 py-2 text-sm font-medium">
-                    {error}
-                  </div>
-                )}
               </div>
             </form>
           </div>

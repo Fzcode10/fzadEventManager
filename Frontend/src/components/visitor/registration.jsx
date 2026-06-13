@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+import { Upload, AlertTriangle, ShieldCheck, Clipboard } from "lucide-react";
 
 const RegistrationForm = ({ event, onSuccess, onError }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +10,6 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
     collegeName: "",
     department: "",
     year: "",
-    // Take data from the event prop passed by VisitorHome
     eventName: event?.title || "",
     eventId: event?.eventId || "", 
   });
@@ -60,7 +60,7 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
 
     const token = localStorage.getItem("user");
 
-      // 1. If no token, redirect to home/login immediately
+    // 1. If no token, redirect to home/login immediately
     if (!token) {
       navigate("/"); 
       return;
@@ -96,86 +96,103 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
   };
 
   const inputStyle =
-    "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all disabled:bg-gray-50 text-sm";
+    "w-full px-4 py-2.5 bg-slate-950 border border-slate-850 rounded-xl focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none transition-all disabled:opacity-50 text-white text-sm placeholder:text-slate-600";
+
+  const labelStyle = 
+    "block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 ml-1";
 
   // --- Success View ---
   if (isSubmitted) {
     return (
-      <div className="p-10 text-center animate-fadeIn">
-        <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="p-10 text-center animate-fadeIn bg-slate-900 text-slate-100">
+        <div className="bg-emerald-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 badge-glow-success">
+          <ShieldCheck size={32} className="text-emerald-400" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Success!</h2>
-        <p className="text-gray-600 mb-6">You are all set for {event?.title}.</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Registration Success!</h2>
+        <p className="text-slate-400 mb-6 text-sm">You are all set for {event?.title}.</p>
       </div>
     );
   }
 
   // --- Form View ---
   return (
-    <div className="bg-white p-6 md:p-8 w-full max-w-xl mx-auto rounded-2xl">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Event Registration</h2>
-        <p className="text-indigo-600 font-medium text-sm">Registering for: {event?.title}</p>
+    <div className="bg-slate-900 p-6 md:p-8 w-full max-w-xl mx-auto rounded-3xl text-slate-150">
+      <div className="mb-6 pb-4 border-b border-slate-800/80">
+        <h2 className="text-2xl font-black text-white flex items-center gap-2">
+          <Clipboard className="text-violet-500" size={24} /> Event Registration
+        </h2>
+        <p className="text-slate-400 font-semibold text-xs mt-1">
+          Registering for: <span className="text-cyan-400">{event?.title}</span>
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Full Name</label>
+            <label className={labelStyle}>Full Name</label>
             <input type="text" name="fullName" placeholder="John Doe" className={inputStyle} onChange={handleChange} required disabled={loading} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Email</label>
+            <label className={labelStyle}>Email</label>
             <input type="email" name="email" placeholder="john@example.com" className={inputStyle} onChange={handleChange} required disabled={loading} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
+            <label className={labelStyle}>Phone</label>
             <input type="number" name="phone" placeholder="9876543210" className={inputStyle} onChange={handleChange} required disabled={loading} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Year</label>
-            <select name="year" className={inputStyle} onChange={handleChange} required disabled={loading}>
-              <option value="">Select Year</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="4th Year">4th Year</option>
+            <label className={labelStyle}>Year</label>
+            <select name="year" className={`${inputStyle} cursor-pointer`} onChange={handleChange} required disabled={loading}>
+              <option value="" className="bg-slate-900 text-slate-500">Select Year</option>
+              <option value="1st Year" className="bg-slate-900 text-white">1st Year</option>
+              <option value="2nd Year" className="bg-slate-900 text-white">2nd Year</option>
+              <option value="3rd Year" className="bg-slate-900 text-white">3rd Year</option>
+              <option value="4th Year" className="bg-slate-900 text-white">4th Year</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">College Name</label>
-          <input type="text" name="collegeName" className={inputStyle} onChange={handleChange} required disabled={loading} />
+          <label className={labelStyle}>College Name</label>
+          <input type="text" name="collegeName" placeholder="University Name" className={inputStyle} onChange={handleChange} required disabled={loading} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Department</label>
-                <input type="text" name="department" className={inputStyle} onChange={handleChange} disabled={loading} />
+                <label className={labelStyle}>Department</label>
+                <input type="text" name="department" placeholder="e.g. CSE" className={inputStyle} onChange={handleChange} disabled={loading} />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Profile Photo</label>
-                <input type="file" accept="image/*" onChange={handlePhoto} required disabled={loading} className="text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                <label className={labelStyle}>Profile Photo</label>
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handlePhoto} 
+                    required 
+                    disabled={loading} 
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-3.5 file:rounded-xl file:border-0 file:bg-slate-950 file:text-cyan-400 hover:file:bg-slate-800 file:font-bold file:cursor-pointer cursor-pointer border border-slate-850 rounded-xl" 
+                  />
+                </div>
             </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-3 text-red-700 text-xs font-medium">
-            {error}
+          <div className="bg-red-950/20 border border-red-900/40 p-4 text-red-400 text-xs font-semibold rounded-2xl flex items-center gap-2.5 animate-fadeIn badge-glow-danger">
+            <AlertTriangle size={16} className="shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         <button
           type="submit"
-          className={`w-full text-white font-bold py-3 rounded-xl transition-all shadow-lg flex justify-center items-center ${
-            loading ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+          className={`w-full text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 cursor-pointer ${
+            loading 
+              ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-750" 
+              : "bg-gradient-accent hover:shadow-violet-500/10 active:scale-[0.98]"
           }`}
           disabled={loading}
         >

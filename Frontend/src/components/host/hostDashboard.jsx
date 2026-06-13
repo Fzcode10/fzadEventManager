@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import OrganizeEventModal from "./OrganizeEventModal";
 import { useNavigate } from "react-router-dom";
+import { Calendar, MapPin, Sparkles, AlertCircle, Clock, ShieldCheck, Ticket, Users, Settings } from "lucide-react";
 
 const HostDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,10 +27,6 @@ const HostDashboard = () => {
         },
       });
 
-      console.log(response);
-      // const text = await response.text();
-      // console.log("RAW RESPONSE:", text);
-
       const data = await response.json();
       if (response.ok && data.success) {
         setEvents(data.data || []);
@@ -47,24 +44,33 @@ const HostDashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pt-12 pb-10 px-4 md:px-8 w-full">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-950 pt-24 pb-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden text-slate-100">
+      {/* Glowing mesh background */}
+      <div className="absolute top-[10%] left-[-10%] w-[400px] h-[400px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* --- Header Section --- */}
-        <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative py-8 px-6 bg-slate-900/40 border border-slate-850/60 rounded-3xl backdrop-blur-md">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent"></div>
+          
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Event Management
+            <span className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-black tracking-widest uppercase rounded-full w-fit flex items-center gap-1.5 mb-4">
+              <Sparkles size={10} /> Host Portal
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+              Event <span className="text-gradient">Management</span>
             </h1>
-            <p className="text-slate-500 mt-1 font-medium">
-              Monitor your visit requests and approved schedules.
+            <p className="text-slate-400 mt-2.5 text-sm md:text-base font-medium max-w-2xl leading-relaxed">
+              Monitor your visit requests, manage attendee approvals, and organize new schedules.
             </p>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center gap-2"
+            className="bg-gradient-accent text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-wider text-sm"
           >
-            <span className="text-xl">+</span> Organize New Event
+            <span className="text-xl leading-none">+</span> Organize Event
           </button>
         </header>
 
@@ -72,134 +78,98 @@ const HostDashboard = () => {
         <div className="grid gap-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-slate-500 font-medium">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+              <p className="text-slate-450 font-bold text-sm tracking-widest uppercase">
                 Loading your events...
               </p>
             </div>
           ) : events.length === 0 ? (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-20 text-center">
-              <p className="text-slate-400 text-lg font-medium">
+            <div className="glass-panel border border-dashed border-slate-700/50 rounded-3xl p-20 text-center flex flex-col items-center justify-center">
+              <div className="bg-slate-900/50 p-5 rounded-full mb-5 border border-slate-800">
+                <Calendar className="w-10 h-10 text-slate-500" />
+              </div>
+              <p className="text-slate-300 font-bold text-lg mb-2">
                 No events scheduled yet.
               </p>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="text-blue-600 font-bold mt-2 hover:underline"
+                className="px-6 py-3 bg-slate-900 border border-slate-700 text-white font-bold rounded-xl hover:bg-gradient-accent hover:border-transparent transition-all text-sm uppercase tracking-wider mt-4"
               >
-                Create your first event now
+                Create your first event
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {events.map((event) => (
                 <div
                   key={event._id}
-                  className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col group relative"
+                  className="glass-panel border border-slate-800/80 rounded-3xl p-6 shadow-sm hover-glow transition-all duration-300 flex flex-col group relative"
                 >
                   {/* Top Header: Category & Status */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] font-black text-blue-600 tracking-[0.15em] uppercase px-2 py-0.5 bg-blue-50 rounded-md w-fit">
+                  <div className="flex justify-between items-start mb-5">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[9px] font-black text-cyan-400 tracking-[0.15em] uppercase px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-full w-fit">
                         {event.category || "General"}
                       </span>
-                      <h2 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
+                      <h2 className="text-xl font-extrabold text-white leading-tight">
                         {event.title}
                       </h2>
                     </div>
 
-                    {/* Status Badge - Refined UI */}
-                    <div className="shrink-0">
-                      {event.status === "approved" && (
-                        <button
-                          onClick={() =>
-                            Navigate(`/host/manage/${event.eventId}`)
-                          }
-                          className="flex items-center gap-1.5 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm hover:bg-indigo-700 transition"
-                        >
-                          ⚙ Manage Event
-                        </button>
-                      )}
-
+                    {/* Status Badge */}
+                    <div className="shrink-0 flex items-center gap-2">
                       {event.status === "pending" && (
-                        <span className="flex items-center gap-1.5 bg-amber-50 text-amber-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-100/50 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                          PENDING
+                        <span className="flex items-center gap-1.5 bg-amber-950/40 text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-amber-900/30 uppercase tracking-wider">
+                          <Clock size={10} /> PENDING
                         </span>
                       )}
 
                       {event.status === "rejected" && (
-                        <span className="flex items-center gap-1.5 bg-red-50 text-red-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-100/50 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                          REJECTED
+                        <span className="flex items-center gap-1.5 bg-red-950/40 text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-red-900/30 uppercase tracking-wider">
+                          <AlertCircle size={10} /> REJECTED
+                        </span>
+                      )}
+
+                      {event.status === "approved" && (
+                        <span className="flex items-center gap-1.5 bg-emerald-950/40 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-emerald-900/30 uppercase tracking-wider badge-glow-success">
+                          <ShieldCheck size={10} /> APPROVED
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Description - Shorter font size */}
-                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-6 italic opacity-80">
+                  {/* Description */}
+                  <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-6">
                     {event.description}
                   </p>
 
-                  {/* Metadata Grid - Reduced font sizes and optimized spacing */}
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-4 pt-4 border-t border-slate-50">
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-4 pt-4 border-t border-slate-850 mt-auto">
                     {/* Location */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex items-center justify-center w-7 h-7 bg-blue-50/50 rounded-lg text-blue-500 shrink-0">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
+                    <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-900/60">
+                      <div className="flex items-center justify-center w-8 h-8 bg-cyan-950/50 rounded-xl text-cyan-400 shrink-0 border border-cyan-900/30">
+                        <MapPin size={14} />
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
+                        <span className="text-[8px] uppercase text-slate-500 font-extrabold tracking-wider leading-none mb-1">
                           Location
                         </span>
-                        <span className="text-[11px] font-bold text-slate-600 truncate max-w-30">
+                        <span className="text-[11px] font-bold text-slate-300 truncate">
                           {event.location || "TBD"}
                         </span>
                       </div>
                     </div>
 
                     {/* Date */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex items-center justify-center w-7 h-7 bg-purple-50/50 rounded-lg text-purple-500 shrink-0">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
+                    <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-900/60">
+                      <div className="flex items-center justify-center w-8 h-8 bg-violet-950/50 rounded-xl text-violet-400 shrink-0 border border-violet-900/30">
+                        <Calendar size={14} />
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[8px] uppercase text-slate-500 font-extrabold tracking-wider leading-none mb-1">
                           Date
                         </span>
-                        <span className="text-[11px] font-bold text-slate-600">
+                        <span className="text-[11px] font-bold text-slate-300">
                           {new Date(event.dateOFEvent).toLocaleDateString(
                             "en-GB",
                             { day: "2-digit", month: "short" },
@@ -209,62 +179,45 @@ const HostDashboard = () => {
                     </div>
 
                     {/* Slots */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex items-center justify-center w-7 h-7 bg-orange-50/50 rounded-lg text-orange-500 shrink-0">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
+                    <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-900/60">
+                      <div className="flex items-center justify-center w-8 h-8 bg-orange-950/50 rounded-xl text-orange-400 shrink-0 border border-orange-900/30">
+                        <Users size={14} />
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
-                          {/* Total Sloat */}
-                          {event.status === "approved" ? "Remaimn Slots" : "Total Slots"}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[8px] uppercase text-slate-500 font-extrabold tracking-wider leading-none mb-1">
+                          {event.status === "approved" ? "Remaining Slots" : "Total Slots"}
                         </span>
-                        <span className="text-[11px] font-bold text-slate-600">
-                          {event.remaningSlots === 0 ? "Booking Completed" : `${event.remaningSlots} Slots`}
+                        <span className="text-[11px] font-bold text-slate-300">
+                          {event.remaningSlots === 0 ? "Fully Booked" : `${event.remaningSlots} Slots`}
                         </span>
                       </div>
                     </div>
 
                     {/* Organizer */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex items-center justify-center w-7 h-7 bg-rose-50/50 rounded-lg text-rose-500 shrink-0">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
+                    <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-900/60">
+                      <div className="flex items-center justify-center w-8 h-8 bg-rose-950/50 rounded-xl text-rose-400 shrink-0 border border-rose-900/30">
+                        <Ticket size={14} />
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-[8px] uppercase text-slate-400 font-extrabold tracking-wider leading-none mb-1">
+                        <span className="text-[8px] uppercase text-slate-500 font-extrabold tracking-wider leading-none mb-1">
                           Host
                         </span>
-                        <span className="text-[11px] font-bold text-slate-600 truncate max-w-50">
+                        <span className="text-[11px] font-bold text-slate-300 truncate">
                           {event.eventOrganizer}
                         </span>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Action Button */}
+                  {event.status === "approved" && (
+                    <button
+                      onClick={() => Navigate(`/host/manage/${event.eventId}`)}
+                      className="mt-6 w-full py-3.5 bg-slate-900 border border-slate-700 text-white font-bold rounded-xl hover:bg-gradient-accent hover:border-transparent transition-all shadow-lg text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <Settings size={14} /> Manage Event Details
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

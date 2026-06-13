@@ -1,44 +1,69 @@
 @import "tailwindcss";
 
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@theme {
+  --color-bg-primary: #0f172a;
+  --color-bg-surface: #1e293b;
+  --color-bg-elevated: #334155;
+  --color-accent-primary: #8b5cf6;
+  --color-accent-secondary: #06b6d4;
+  --color-success-custom: #10b981;
+  --color-warning-custom: #f59e0b;
+  --color-danger-custom: #ef4444;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.glass-panel-elevated {
+  background: rgba(51, 65, 85, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Text Gradients */
+.text-gradient {
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.card {
-  padding: 2em;
+.bg-gradient-accent {
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
 }
 
-.read-the-docs {
-  color: #888;
-} */
+/* Hover effects */
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.hover-glow-cyan {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-glow-cyan:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+  border-color: rgba(6, 182, 212, 0.35);
+}
+
+/* Status badging glows */
+.badge-glow-success {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+.badge-glow-pending {
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+.badge-glow-danger {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}

@@ -374,6 +374,10 @@ exports.getticket = async (req, res) => {
             return res.status(403).json({ error: "Waiting for permission" });
         }
 
+        if(visitor.paymentStatus === "rejected") {
+            return res.status(403).json({error: "Rejected"});
+        }
+
         // QR data
         const qrData = JSON.stringify({
             eventName: visitor.eventName,

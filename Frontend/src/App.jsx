@@ -4,6 +4,7 @@ import "./App.css";
 import Login from "./pages/login";
 import Signup from "./pages/signup";
 import Home from "./pages/home";
+import Features from "./pages/features";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import { AuthContext } from "./Context/AuthContext";
@@ -37,6 +38,8 @@ function App() {
             path="/signup"
             element={user ? <Navigate to="/" /> : <Signup />}
           />
+
+          <Route path="/features" element={<Features />} />
 
           <Route
             path="/eventDetials"

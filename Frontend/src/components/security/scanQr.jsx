@@ -1,6 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
 import VisitorPass from "./VisitorPass";
+import { 
+  Camera, 
+  Printer, 
+  CheckCircle, 
+  AlertTriangle, 
+  Sparkles, 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  User, 
+  ArrowRight,
+  ShieldAlert
+} from "lucide-react";
 
 function QRScanner() {
   const videoRef = useRef(null);
@@ -24,7 +37,6 @@ function QRScanner() {
     }
 
     const content = printRef.current.innerHTML;
-    // Window sized for a vertical card
     const printWindow = window.open("", "_blank", "width=450,height=700");
     printWindow.document.write(`
 <!DOCTYPE html>
@@ -82,7 +94,7 @@ function QRScanner() {
 
             <!-- Dynamic Content -->
             <div class="p-5">
-                ${content}
+                \${content}
             </div>
 
             <!-- Footer -->
@@ -138,7 +150,7 @@ function QRScanner() {
         maxScansPerSecond: 2,
       },
     );
-    scannerRef.current.start().catch(() => setError("Camera failed."));
+    scannerRef.current.start().catch(() => setError("Camera access denied or failed."));
     return () => {
       if (scannerRef.current) scannerRef.current.destroy();
     };
@@ -201,7 +213,11 @@ function QRScanner() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans text-gray-900">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 font-sans text-slate-100 relative overflow-hidden">
+      {/* Glowing mesh background */}
+      <div className="absolute top-[10%] left-[-15%] w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[-15%] w-[500px] h-[500px] bg-cyan-600/5 rounded-full blur-[140px] pointer-events-none" />
+
       {/* Hidden printer component */}
       <VisitorPass
         ref={printRef}
@@ -210,59 +226,71 @@ function QRScanner() {
       />
 
       <div
-        className={`transition-all duration-500 bg-white rounded-3xl shadow-2xl overflow-hidden ${
-          scanResult ? "w-full max-w-5xl" : "w-full max-w-md"
+        className={`transition-all duration-500 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative ${
+          scanResult ? "w-full max-w-4xl" : "w-full max-w-md"
         }`}
       >
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+
         {/* Header */}
         <div
-          className={`p-5 text-white text-center transition-colors ${error ? "bg-red-600" : "bg-indigo-600"}`}
+          className={`p-6 border-b text-center relative transition-colors ${
+            error ? "border-red-900/40 bg-red-950/20" : "border-slate-800 bg-slate-900/60"
+          }`}
         >
-          <h2 className="text-xl font-black uppercase tracking-widest">
-            {error ? "Scan Error" : "Entry Terminal"}
+          <div className="flex items-center justify-center gap-2">
+            <span className={`w-2 h-2 rounded-full animate-ping ${error ? "bg-red-500" : "bg-cyan-400"}`} />
+            <span className={`px-2 py-0.5 text-[10px] font-black tracking-widest uppercase rounded-full border ${
+              error ? "bg-red-500/10 border-red-500/20 text-red-400" : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
+            }`}>
+              {error ? "System Error" : "Live Terminal"}
+            </span>
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight text-white mt-1">
+            {error ? "Scan Alert" : "Gate Entry Scanner"}
           </h2>
         </div>
 
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           {isScanning ? (
-            <div className="relative">
-              <video
-                ref={videoRef}
-                className="w-full aspect-square object-cover rounded-2xl border-4 border-gray-100 shadow-sm"
-              />
-              <div className="absolute inset-0 border-2 border-indigo-400 rounded-2xl pointer-events-none overflow-hidden">
-                <div className="w-full h-1 bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.8)] animate-scan-line"></div>
+            <div className="relative max-w-sm mx-auto">
+              {/* Futuristic HUD frame around scanner */}
+              <div className="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-cyan-400 rounded-tl-lg"></div>
+              <div className="absolute -top-3 -right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-400 rounded-tr-lg"></div>
+              <div className="absolute -bottom-3 -left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-400 rounded-bl-lg"></div>
+              <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-cyan-400 rounded-br-lg"></div>
+              
+              <div className="relative aspect-square rounded-2xl border-2 border-slate-800 bg-slate-950 overflow-hidden shadow-inner">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover rounded-2xl opacity-80"
+                />
+                {/* Laser Scanning Indicator */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,0.8)] animate-scan-line"></div>
+                </div>
               </div>
-              <p className="text-center mt-4 text-gray-400 text-sm animate-pulse">
-                Waiting for QR Code...
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-5 text-slate-500 text-xs font-bold uppercase tracking-wider animate-pulse">
+                <Camera size={14} className="text-cyan-500" />
+                <span>Align Ticket QR Code</span>
+              </div>
             </div>
           ) : error ? (
-            /* Error View */
-            <div className="text-center py-10 animate-in fade-in zoom-in">
-              <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-10 h-10"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+            /* Error Panel */
+            <div className="text-center py-8 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/5">
+                <ShieldAlert className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold">Invalid Scan</h3>
-              <p className="text-red-500 font-medium mt-2">{error}</p>
+              <h3 className="text-xl font-black text-white">Verification Failed</h3>
+              <p className="text-red-400 font-bold text-xs mt-2 uppercase tracking-wide bg-red-950/20 border border-red-900/30 px-4 py-2 rounded-xl inline-block">
+                {error}
+              </p>
 
-              <div className="mt-10 max-w-xs mx-auto">
-                <p className="text-xs text-gray-400 uppercase font-bold mb-2">
-                  Restarting in {countdown}s
+              <div className="mt-8 max-w-xs mx-auto">
+                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">
+                  Restarting Terminal In {countdown}s
                 </p>
-                <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
                   <div
                     className="bg-red-500 h-full transition-all duration-1000 ease-linear"
                     style={{ width: `${(countdown / 10) * 100}%` }}
@@ -270,95 +298,114 @@ function QRScanner() {
                 </div>
                 <button
                   onClick={restartScanner}
-                  className="mt-6 text-indigo-600 font-bold text-sm hover:underline"
+                  className="mt-6 bg-slate-950 border border-slate-800 hover:border-red-500 hover:text-white text-slate-400 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
                 >
-                  Restart Now
+                  Restart Scanner Now
                 </button>
               </div>
             </div>
           ) : (
             /* Split View Result */
-            <div className="flex flex-col md:flex-row gap-12 animate-in fade-in slide-in-from-bottom-6">
-              {/* Left Side: System Details */}
-              <div className="flex-1 space-y-6">
-                <div className="flex items-center gap-6">
-                  <img
-                    src={scanResult.profilePic}
-                    alt="Visitor"
-                    className="w-24 h-24 rounded-2xl object-cover border-4 border-indigo-50"
-                  />
-                  <div>
-                    <h4 className="text-2xl font-bold tracking-tight">
-                      {scanResult.name}
-                    </h4>
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mt-1 ${
-                        scanResult.action === "OUT"
-                          ? "bg-orange-100 text-orange-600"
-                          : "bg-green-100 text-green-600"
-                      }`}
-                    >
-                      {scanResult.status}
-                    </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Left Side: Verification Profile */}
+              <div className="flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex items-center gap-5 pb-5 border-b border-slate-800">
+                    <img
+                      src={scanResult.profilePic}
+                      alt="Visitor"
+                      className="w-20 h-20 rounded-2xl object-cover ring-2 ring-violet-500/50 ring-offset-4 ring-offset-slate-900 shrink-0 bg-slate-950"
+                    />
+                    <div>
+                      <h4 className="text-xl font-black text-white tracking-tight leading-tight uppercase">
+                        {scanResult.name}
+                      </h4>
+                      <div className="mt-2 flex items-center gap-1.5">
+                        {scanResult.action === "OUT" ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-0.5 text-[9px] font-black uppercase rounded-full bg-amber-950/40 border border-amber-900/30 text-amber-400">
+                            <Clock size={10} /> Checked Out
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-3 py-0.5 text-[9px] font-black uppercase rounded-full bg-emerald-950/40 border border-emerald-900/30 text-emerald-400 badge-glow-success">
+                            <CheckCircle size={10} /> Verified In
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <p className="text-[10px] text-gray-400 uppercase font-black">
-                      Event
-                    </p>
-                    <p className="text-sm font-bold truncate">
-                      {scanResult.eventName}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <p className="text-[10px] text-gray-400 uppercase font-black">
-                      Time
-                    </p>
-                    <p className="text-sm font-bold">{scanResult.entryTime}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-slate-950/40 border border-slate-850 p-4 rounded-xl">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider block mb-1">
+                        Visitor Event
+                      </span>
+                      <p className="text-xs font-bold text-slate-200 truncate">
+                        {scanResult.eventName}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-slate-950/40 border border-slate-850 p-4 rounded-xl">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider block mb-1">
+                        Log Timestamp
+                      </span>
+                      <p className="text-xs font-bold text-slate-200">
+                        {scanResult.entryTime}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/40 border border-slate-850 p-4 rounded-xl sm:col-span-2">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider block mb-1">
+                        Organization
+                      </span>
+                      <p className="text-xs font-bold text-slate-200 truncate">
+                        {scanResult.organization || "Direct Guest"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   onClick={restartScanner}
-                  className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all"
+                  className="w-full py-3.5 bg-slate-950 border border-slate-800 hover:border-violet-500 hover:text-white text-slate-300 font-bold rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all mt-4"
                 >
-                  Done & Continue
+                  Close & Scan Next <ArrowRight size={14} />
                 </button>
               </div>
 
-              {/* Right Side: Printable Pass */}
-              <div className="flex-1 bg-indigo-50 rounded-3xl p-8 flex flex-col justify-between border-2 border-dashed border-indigo-200">
-                <div className="bg-white p-6 rounded-2xl shadow-xl relative overflow-hidden border-t-8 border-indigo-600">
-                  <div className="flex justify-between items-start mb-8">
+              {/* Right Side: Pass Details & Print */}
+              <div className="bg-slate-950/60 rounded-3xl p-6 flex flex-col justify-between border border-slate-800">
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden shadow-xl">
+                  {/* Top glowing card line */}
+                  <div className="absolute top-0 left-0 right-0 h-[3.5px] bg-gradient-to-r from-violet-500 to-cyan-500"></div>
+                  
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <p className="text-[10px] font-black text-indigo-600 uppercase">
-                        Visitor Pass
+                      <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+                        Pass Verification
                       </p>
-                      <h5 className="text-lg font-bold text-gray-800 leading-tight">
+                      <h5 className="text-base font-extrabold text-white mt-1 leading-tight">
                         {scanResult.name}
                       </h5>
                     </div>
-                    <div className="bg-indigo-600 text-white px-2 py-1 rounded text-[10px] font-bold">
-                      2026
-                    </div>
+                    <span className="bg-violet-500/10 border border-violet-500/20 text-violet-400 px-2.5 py-0.5 rounded text-[9px] font-black tracking-wider uppercase">
+                      Visitor
+                    </span>
                   </div>
 
-                  <div className="flex justify-between items-end">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-[10px] text-gray-400 uppercase font-bold">
-                        Category
-                      </p>
-                      <p className="text-sm font-black text-gray-700">
+                      <span className="text-[8px] text-slate-500 uppercase font-bold tracking-wider">
+                        Pass Class
+                      </span>
+                      <p className="text-xs font-black text-slate-200">
                         {scanResult.passType}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-gray-400 uppercase font-bold">
-                        Pass ID
-                      </p>
-                      <p className="text-sm font-mono font-bold">
+                      <span className="text-[8px] text-slate-500 uppercase font-bold tracking-wider">
+                        Pass Serial
+                      </span>
+                      <p className="text-xs font-mono font-bold text-cyan-400">
                         #VP-{Math.floor(1000 + Math.random() * 9000)}
                       </p>
                     </div>
@@ -367,34 +414,24 @@ function QRScanner() {
 
                 <button
                   onClick={handlePrint}
-                  className={`mt-8 w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-lg transition-all ${
+                  disabled={scanResult.action === "OUT"}
+                  className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-xs uppercase tracking-wider mt-6 ${
                     scanResult.action === "OUT"
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-600 hover:text-white"
+                      ? "bg-slate-900 border border-slate-850/50 text-slate-600 cursor-not-allowed"
+                      : "bg-gradient-accent text-white hover:shadow-violet-500/25 active:scale-95"
                   }`}
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                    />
-                  </svg>
-                  Print Pass
+                  <Printer size={15} />
+                  <span>Print Gate Pass</span>
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
-      <p className="mt-6 text-gray-400 text-[10px] font-bold tracking-[0.2em] uppercase">
-        VMS Terminal Alpha-v1.0
+      
+      <p className="mt-8 text-slate-600 text-[10px] font-black tracking-[0.25em] uppercase flex items-center gap-1.5 pointer-events-none">
+        <Sparkles size={10} className="text-violet-500/60" /> VMS Terminal Alpha-v1.0
       </p>
     </div>
   );

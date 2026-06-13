@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { useLogout } from "../hooks/useLogout";
 import { useNavigate } from 'react-router-dom';
+import { User, Mail, Shield, Sparkles, Ticket, LogOut, Pencil } from "lucide-react";
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -13,7 +14,6 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("user");
-
 
       if (!token) {
         navigate("/"); 
@@ -50,136 +50,133 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-slate-950 flex justify-center items-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Loading Profile...</p>
+        </div>
       </div>
     );
   }
 
   const displayData = profileData || user;
 
-  // New Function to handle role-based UI
+  // Role-based accent content
   const renderRoleSpecificContent = () => {
     const role = displayData?.role?.toLowerCase();
 
     if (role === "visitor") {
       return (
-        <div className="mt-6 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Registered Events</h3>
-            <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full">Active</span>
+        <div className="mt-6 p-4 bg-emerald-950/20 rounded-2xl border border-emerald-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Ticket size={12} /> Registered Events
+            </h3>
+            <span className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
           </div>
-          <p className="text-sm text-slate-600 italic">You'r currently registered upcoming events.</p>
-          <button className="mt-3 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors" onClick={() => navigate('/eventDetials')}>
+          <p className="text-xs text-slate-400 leading-relaxed">Your currently registered upcoming events and tickets.</p>
+          <button 
+            className="mt-3 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-wider flex items-center gap-1" 
+            onClick={() => navigate('/eventDetials')}
+          >
             View My Tickets →
           </button>
         </div>
       );
     }
 
-    // if (role === "host") {
-    //   return (
-    //     <div className="mt-6 space-y-3">
-    //       <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
-    //         <h3 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-3">Event Hosting Summary</h3>
-    //         <div className="grid grid-cols-2 gap-2">
-    //           <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
-    //             <p className="text-[10px] text-slate-400 uppercase font-bold">Completed</p>
-    //             <p className="text-lg font-bold text-indigo-600">12</p>
-    //           </div>
-    //           <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-50">
-    //             <p className="text-[10px] text-slate-400 uppercase font-bold">Upcoming</p>
-    //             <p className="text-lg font-bold text-blue-600">2</p>
-    //           </div>
-    //         </div>
-    //         <button className="w-full mt-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all">
-    //           Manage Dashboard
-    //         </button>
-    //       </div>
-    //     </div>
-    //   );
-    // }
-
-    // Return nothing for Admin or undefined roles
     return null;
   };
 
   return (
-    <div className="max-w-md mx-auto my-10 overflow-hidden bg-white/70 backdrop-blur-xl border border-blue-100/50 rounded-3xl shadow-2xl shadow-blue-200/40 font-sans">
-      {/* Profile Header */}
-      <div className="h-24 bg-linear-to-r from-blue-600 to-indigo-600" />
+    <div className="min-h-screen bg-slate-950 pt-24 pb-16 px-4 sm:px-6 font-sans relative overflow-hidden text-slate-100">
+      {/* Glowing mesh background */}
+      <div className="absolute top-[5%] left-[-10%] w-[400px] h-[400px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[-10%] w-[400px] h-[400px] bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="px-8 pb-8">
-        {/* Profile Picture */}
-        <div className="relative flex justify-center">
-          <img
-            className="w-28 h-28 -mt-14 rounded-2xl border-4 border-white shadow-lg object-cover bg-white"
-            src={
-              displayData?.avatar ||
-              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-            }
-            alt="User Profile"
-          />
-          <div className="absolute bottom-0 right-1/3 transform translate-x-8 bg-emerald-500 border-2 border-white w-5 h-5 rounded-full"></div>
-        </div>
+      <div className="max-w-md mx-auto relative z-10">
+        {/* Profile Card */}
+        <div className="glass-panel border border-slate-800/80 rounded-3xl shadow-2xl overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
 
-        {/* User Details */}
-        <div className="text-center mt-4">
-          <h2 className="text-2xl font-bold text-blue-900">
-            {displayData?.fullName || "Loading..."}
-          </h2>
-          <p className="text-sm font-semibold text-blue-600 tracking-wide uppercase mt-1">
-            {displayData?.role}
-          </p>
-        </div>
-
-        {/* Information Grid */}
-        <div className="mt-8 space-y-4">
-          {/* Name Field */}
-          <div className="flex items-center gap-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100/30">
-            <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Name</p>
-              <p className="text-sm font-medium text-slate-700">{displayData?.fullName}</p>
-            </div>
+          {/* Gradient Banner Header */}
+          <div className="h-28 bg-gradient-to-r from-violet-600/30 via-cyan-500/20 to-violet-600/30 relative">
+            <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"></div>
+            {/* Decorative corner orbs */}
+            <div className="absolute top-4 left-4 w-16 h-16 bg-violet-500/10 rounded-full blur-xl"></div>
+            <div className="absolute top-6 right-6 w-12 h-12 bg-cyan-500/10 rounded-full blur-xl"></div>
           </div>
 
-          {/* Email Field */}
-          <div className="flex items-center gap-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100/30">
-            <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+          <div className="px-6 sm:px-8 pb-8">
+            {/* Profile Picture */}
+            <div className="relative flex justify-center">
+              <div className="relative -mt-16">
+                <img
+                  className="w-28 h-28 rounded-2xl object-cover bg-slate-950 ring-4 ring-slate-900 ring-offset-2 ring-offset-violet-500/30 shadow-xl"
+                  src={
+                    displayData?.avatar ||
+                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                  }
+                  alt="User Profile"
+                />
+                {/* Online indicator */}
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-[3px] border-slate-900 rounded-full shadow-lg shadow-emerald-500/50"></div>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Email Address</p>
-              <p className="text-sm font-medium text-slate-700">{displayData?.email}</p>
+
+            {/* User Identity */}
+            <div className="text-center mt-5">
+              <h2 className="text-2xl font-black text-white tracking-tight">
+                {displayData?.fullName || "Loading..."}
+              </h2>
+              <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-0.5 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[9px] font-black tracking-widest uppercase rounded-full">
+                <Shield size={10} /> {displayData?.role}
+              </span>
+            </div>
+
+            {/* Information Fields */}
+            <div className="mt-8 space-y-3">
+              {/* Name Field */}
+              <div className="flex items-center gap-4 p-3.5 bg-slate-950/40 rounded-xl border border-slate-800">
+                <div className="flex items-center justify-center w-9 h-9 bg-violet-950/50 rounded-xl text-violet-400 shrink-0 border border-violet-900/30">
+                  <User size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none mb-1">Full Name</p>
+                  <p className="text-xs font-bold text-slate-200 truncate">{displayData?.fullName}</p>
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="flex items-center gap-4 p-3.5 bg-slate-950/40 rounded-xl border border-slate-800">
+                <div className="flex items-center justify-center w-9 h-9 bg-cyan-950/50 rounded-xl text-cyan-400 shrink-0 border border-cyan-900/30">
+                  <Mail size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] uppercase font-black text-slate-500 tracking-wider leading-none mb-1">Email Address</p>
+                  <p className="text-xs font-bold text-slate-200 truncate">{displayData?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Role-Specific Content Injection */}
+            {renderRoleSpecificContent()}
+
+            {/* Action Buttons */}
+            <div className="mt-8 flex flex-col gap-3">
+              <button className="w-full bg-gradient-accent text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                <Pencil size={14} /> Edit Details
+              </button>
+
+              <button
+                onClick={logout}
+                className="w-full bg-slate-950/50 hover:bg-red-950/30 text-red-400 hover:text-red-300 font-bold py-3.5 rounded-xl border border-slate-800 hover:border-red-900/40 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
+              >
+                <LogOut size={14} />
+                Logout
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Role-Specific Content Injection */}
-        {renderRoleSpecificContent()}
-
-        {/* Action Buttons */}
-        <div className="mt-10 flex flex-col gap-3">
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95">
-            Edit Details
-          </button>
-
-          <button
-            onClick={logout}
-            className="w-full bg-transparent hover:bg-red-50 text-red-500 font-bold py-3 rounded-xl border border-red-100 transition-colors flex items-center justify-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Logout
-          </button>
         </div>
       </div>
     </div>

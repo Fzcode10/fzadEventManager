@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
+import { Download, X, AlertTriangle } from "lucide-react";
 
-// Added 'event' and 'onBack' as props from the parent
 function GenerateQR({ event, onBack }) {
   const [qr, setQr] = useState("");
   const [error, setError] = useState("");
@@ -9,7 +9,6 @@ function GenerateQR({ event, onBack }) {
 
   const ticketRef = useRef();
 
-  // Auto-generate QR when the component mounts using the passed event prop
   useEffect(() => {
     if (event) {
       handleGenerateTicket();
@@ -25,12 +24,10 @@ function GenerateQR({ event, onBack }) {
       const cleanToken = token.replace(/"/g, "");
       const eventId = event.eventId;
 
-      console.log(eventId);
-
       const res = await fetch("/api/visitor/ticket", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // Added content-type
+          "Content-Type": "application/json",
           Authorization: `Bearer ${cleanToken}`,
         },
         body: JSON.stringify({ eventId }),
@@ -59,7 +56,8 @@ function GenerateQR({ event, onBack }) {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        (setError(null), onBack());
+        setError(null);
+        onBack();
       }, 8000);
       return () => clearTimeout(timer);
     }
@@ -72,8 +70,8 @@ function GenerateQR({ event, onBack }) {
     try {
       await new Promise((r) => setTimeout(r, 100));
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 3, // 20 is extremely high and might crash mobile browsers, 3-5 is usually plenty for QR
-        backgroundColor: "#ffffff",
+        scale: 3,
+        backgroundColor: "#0f172a", // Midnight Aurora base color
         useCORS: true,
       });
 
@@ -91,202 +89,144 @@ function GenerateQR({ event, onBack }) {
   };
 
   return (
-    // Updated style: Now works as a fixed overlay (Modal style)
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)", // Dimmed background
-        backdropFilter: "blur(4px)",
-        padding: "20px",
-      }}
-    >
-      <div style={{ textAlign: "center", position: "relative" }}>
+    <div className="flex flex-col items-center justify-center animate-slideUp w-full max-w-sm">
         {error && (
-          <div className="mx-auto max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-lg transition-all animate-in fade-in zoom-in duration-300">
+          <div className="w-full overflow-hidden rounded-2xl border border-red-900/30 bg-slate-900 p-6 shadow-2xl badge-glow-danger">
             <div className="flex flex-col items-center text-center">
-              {/* Elegant Icon Container */}
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                  />
-                </svg>
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-950/50 text-red-500 border border-red-900/50">
+                <AlertTriangle size={24} />
               </div>
-
-              {/* Content */}
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-slate-900">
-                  Unable to complete request
+                <h3 className="text-lg font-bold text-white">
+                  Pass Generation Failed
                 </h3>
-                <p className="text-sm leading-relaxed text-slate-500">
-                  We’re having trouble processing this right now. Please try
-                  again or reach out to our{" "}
-                  <span className="font-medium text-slate-700 underline decoration-slate-300 cursor-pointer hover:text-blue-600">
-                    support team
-                  </span>{" "}
-                  for help.
+                <p className="text-sm leading-relaxed text-slate-400">
+                  {error}. Please try again later or contact support.
                 </p>
               </div>
-
-              {/* Action Button */}
               <div className="mt-8 w-full">
                 <button
                   onClick={onBack}
-                  className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:scale-[0.98] shadow-sm"
+                  className="w-full rounded-xl bg-slate-800 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-700 active:scale-[0.98]"
                 >
-                  Go Back
+                  Close
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Loading State */}
         {!qr && !error && (
-          <div style={{ color: "white", fontWeight: "bold" }}>
-            Generating your digital pass...
+          <div className="flex flex-col items-center justify-center p-8 glass-panel rounded-3xl border border-slate-800 w-full shadow-2xl">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500 mb-4"></div>
+            <div className="text-slate-300 font-bold text-sm tracking-widest uppercase">
+              Generating Pass...
+            </div>
           </div>
         )}
 
-        {/* THE TICKET */}
         {qr && (
           <>
             <div
               ref={ticketRef}
               style={{
                 width: "320px",
-                backgroundColor: "#ffffff",
+                backgroundColor: "#0f172a",
                 overflow: "hidden",
-                borderRadius: "0px", // Matches modern style
+                borderRadius: "24px",
+                border: "1px solid #1e293b",
                 boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+                position: "relative",
               }}
             >
+              {/* Top Banner */}
               <div
                 style={{
-                  backgroundColor: "#4f46e5",
-                  padding: "20px",
+                  background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                  padding: "24px 20px",
                   color: "white",
+                  textAlign: "center",
                 }}
               >
-                <h3
-                  style={{ margin: 0, letterSpacing: "2px", fontSize: "14px" }}
-                >
-                  OFFICIAL ENTRY PASS
+                <h3 style={{ margin: 0, letterSpacing: "3px", fontSize: "12px", fontWeight: "900", textTransform: "uppercase" }}>
+                  Digital Entry Pass
                 </h3>
               </div>
 
-              <div style={{ padding: "30px" }}>
-                <h2
-                  style={{
-                    margin: "0 0 5px 0",
-                    color: "#1f2937",
-                    fontSize: "20px",
-                  }}
-                >
+              {/* Content area */}
+              <div style={{ padding: "30px", textAlign: "center", position: "relative" }}>
+                {/* User Info */}
+                <h2 style={{ margin: "0 0 8px 0", color: "#f8fafc", fontSize: "22px", fontWeight: "800" }}>
                   {event.fullName || "Attendee"}
                 </h2>
-                <p
-                  style={{
-                    color: "#6366f1",
-                    fontWeight: "bold",
-                    margin: "0 0 20px 0",
-                    fontSize: "14px",
-                  }}
-                >
+                <p style={{ color: "#06b6d4", fontWeight: "700", margin: "0 0 24px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px" }}>
                   {event.title}
                 </p>
 
-                <div
-                  style={{
-                    padding: "15px",
-                    border: "2px dashed #e5e7eb",
-                    borderRadius: "20px",
+                {/* QR Wrapper */}
+                <div style={{ 
+                    padding: "16px", 
+                    backgroundColor: "#1e293b", 
+                    borderRadius: "20px", 
                     display: "inline-block",
-                  }}
-                >
-                  <img
-                    src={qr}
-                    alt="QR Code"
-                    style={{
-                      width: "180px",
-                      height: "180px",
-                      display: "block",
-                    }}
-                  />
+                    border: "1px solid #334155",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.3)"
+                }}>
+                  <div style={{ backgroundColor: "white", padding: "8px", borderRadius: "12px" }}>
+                    <img
+                        src={qr}
+                        alt="QR Code"
+                        style={{
+                        width: "180px",
+                        height: "180px",
+                        display: "block",
+                        borderRadius: "8px",
+                        }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Event Id */}
+                <div style={{ marginTop: "20px", color: "#64748b", fontSize: "11px", fontWeight: "bold", letterSpacing: "2px" }}>
+                    ID: {event.eventId?.slice(-8).toUpperCase() || "TICKET"}
                 </div>
               </div>
 
+              {/* Bottom text */}
               <div
                 style={{
-                  backgroundColor: "#f8fafc",
-                  padding: "15px",
-                  fontSize: "11px",
+                  backgroundColor: "#1e293b",
+                  padding: "16px",
+                  fontSize: "10px",
                   color: "#94a3b8",
-                  borderTop: "1px solid #f1f5f9",
-                  fontWeight: "600",
+                  borderTop: "1px dashed #334155",
+                  fontWeight: "800",
+                  textAlign: "center",
+                  letterSpacing: "1.5px"
                 }}
               >
-                VALID FOR ONE-TIME ENTRANCE ONLY
+                VALID FOR ONE-TIME ENTRY
               </div>
             </div>
 
-            {/* Buttons Below Ticket */}
-            <div
-              style={{
-                marginTop: "25px",
-                display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-              }}
-            >
+            {/* Actions */}
+            <div className="mt-6 flex gap-3 w-full max-w-[320px]">
               <button
                 onClick={onBack}
-                style={{
-                  padding: "12px 24px",
-                  borderRadius: "12px",
-                  border: "none",
-                  backgroundColor: "white",
-                  color: "#374151",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
+                className="flex-1 py-3.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-bold hover:bg-slate-800 transition-all active:scale-95 flex justify-center items-center gap-2"
               >
-                Close
+                <X size={16} /> Close
               </button>
               <button
                 onClick={takeScreenshot}
                 disabled={isCapturing}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#0891b2",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "12px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  boxShadow: "0 10px 15px -3px rgba(8, 145, 178, 0.3)",
-                }}
+                className="flex-[2] py-3.5 rounded-xl bg-gradient-accent text-white font-bold hover:shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 flex justify-center items-center gap-2"
               >
-                {isCapturing ? "Processing..." : "Save to Gallery"}
+                {isCapturing ? "Saving..." : <><Download size={16} /> Save Pass</>}
               </button>
             </div>
           </>
         )}
-      </div>
     </div>
   );
 }
