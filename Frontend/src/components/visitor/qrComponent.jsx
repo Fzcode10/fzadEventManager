@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { Download, X, AlertTriangle } from "lucide-react";
 
 function GenerateQR({ event, onBack }) {
@@ -68,16 +68,23 @@ function GenerateQR({ event, onBack }) {
     setIsCapturing(true);
 
     try {
-      await new Promise((r) => setTimeout(r, 100));
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 3,
-        backgroundColor: "#0f172a", // Midnight Aurora base color
-        useCORS: true,
-      });
+      // html-to-image uses browser-native SVG foreignObject rendering,
+      // so it supports all CSS color formats including oklch.
+      // Call toPng twice: first call warms the image cache (needed for
+      // base64 QR images), second call captures everything correctly.
+      const options = {
+        pixelRatio: 3,
+        backgroundColor: "#0f172a",
+        cacheBust: true,
+      };
 
-      const image = canvas.toDataURL("image/png");
+      // Warm-up pass — caches embedded images (QR code)
+      await toPng(ticketRef.current, options);
+      // Actual capture — all images are now cached and render properly
+      const dataUrl = await toPng(ticketRef.current, options);
+
       const link = document.createElement("a");
-      link.href = image;
+      link.href = dataUrl;
       link.download = `Ticket-${event?.title || "Event"}.png`;
       link.click();
     } catch (err) {

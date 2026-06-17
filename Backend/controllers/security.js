@@ -1,5 +1,6 @@
 const visitorCheckStatusModule = require('../models/visitorCheckInOut.js');
 const VisitorModule = require('../models/visitorRegisteration.js');
+const EventDetials = require('../models/eventDetiials.js');
 
 exports.scanQrToggle = async (req, res) => {
     try {
@@ -15,6 +16,9 @@ exports.scanQrToggle = async (req, res) => {
             return res.status(404).json({ error: "Visitor not found in system!" });
         }
 
+        // Fetch event details for the pass
+        const eventData = await EventDetials.findOne({ eventId: visitor.eventId });
+
         // 2. Check current status
         let checkStatus = await visitorCheckStatusModule.findOne({ registrationId });
 
@@ -29,7 +33,14 @@ exports.scanQrToggle = async (req, res) => {
             return res.status(200).json({
                 msg: `Goodbye, ${visitor.fullName}! Check-out successful.`,
                 action: "OUT",
-                visitor: { ...visitor._doc, ...updatedStatus._doc }
+                visitor: { ...visitor._doc, ...updatedStatus._doc },
+                eventData: eventData ? {
+                    venue: eventData.location,
+                    date: eventData.dateOFEvent,
+                    category: eventData.category,
+                    organizer: eventData.eventOrganizer,
+                    title: eventData.title,
+                } : null
             });
         }
 
@@ -58,7 +69,14 @@ exports.scanQrToggle = async (req, res) => {
         return res.status(200).json({
             msg: `Welcome, ${visitor.fullName}! Check-in successful.`,
             action: "IN",
-            visitor: { ...visitor._doc, ...checked._doc }
+            visitor: { ...visitor._doc, ...checked._doc },
+            eventData: eventData ? {
+                venue: eventData.location,
+                date: eventData.dateOFEvent,
+                category: eventData.category,
+                organizer: eventData.eventOrganizer,
+                title: eventData.title,
+            } : null
         });
 
     } catch (error) {

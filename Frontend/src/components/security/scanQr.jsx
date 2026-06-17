@@ -36,85 +36,129 @@ function QRScanner() {
       return;
     }
 
-    const content = printRef.current.innerHTML;
-    const printWindow = window.open("", "_blank", "width=450,height=700");
+    // Format event date
+    const eventDate = eventDetails?.date
+      ? new Date(eventDetails.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+      : new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+    // Registration ID suffix for display
+    const regIdShort = scanResult.registrationId || "N/A";
+
+    const printWindow = window.open("", "_blank", "width=450,height=850");
     printWindow.document.write(`
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Visitor Pass</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <title>Digital Visitor Pass - ${scanResult.name}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
     <style>
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-                background: white;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 10mm;
-            }
-
-            .no-print {
-                display: none;
-            }
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
-
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f5f5;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0f172a;
         }
     </style>
 </head>
 
-<body onload="window.print(); window.close();">
+<body onload="window.print(); window.setTimeout(window.close, 500);">
 
     <div class="flex justify-center items-center min-h-screen p-6">
 
-        <div class="w-[420px] bg-white border-2 border-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="w-[380px] bg-[#111827] rounded-[32px] overflow-hidden shadow-2xl relative flex flex-col border border-gray-800">
 
-            <!-- Header -->
-            <div class="bg-blue-900 text-white text-center py-4">
-                <h1 class="text-xl font-bold tracking-wide">
-                    HASSANI CORPORATION
-                </h1>
-                <p class="text-sm opacity-90">
-                    Visitor Management System
-                </p>
-            </div>
-
-            <!-- Pass Title -->
-            <div class="text-center py-3 border-b">
-                <h2 class="text-lg font-bold text-gray-800">
-                    VISITOR PASS
+            <div class="bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] py-5 text-center shadow-md">
+                <h2 class="text-white font-black tracking-[0.2em] text-sm uppercase">
+                    Digital Visitor Pass
                 </h2>
             </div>
 
-            <!-- Dynamic Content -->
-            <div class="p-5">
-                \${content}
+            <!-- Visitor Identity -->
+            <div class="text-center mt-8 px-6">
+                <h1 class="text-3xl font-bold text-white mb-1 tracking-wide">
+                    ${scanResult.name}
+                </h1>
+                <p class="text-[#06b6d4] font-bold tracking-widest text-xs uppercase">
+                    ${scanResult.organization || "Independent Attendee"}
+                </p>
             </div>
 
-            <!-- Footer -->
-            <div class="border-t px-5 py-4">
-                <div class="flex justify-between text-sm text-gray-700">
-                    <div>
-                        <p class="font-semibold">Authorized By</p>
-                        <div class="mt-8 border-t border-gray-400 w-32"></div>
-                    </div>
-
-                    <div class="text-right">
-                        <p class="font-semibold">Visitor Signature</p>
-                        <div class="mt-8 border-t border-gray-400 w-32 ml-auto"></div>
-                    </div>
+            <!-- QR Code -->
+            <div class="mx-auto mt-8 bg-[#1f2937] p-4 rounded-3xl w-56 h-56 flex items-center justify-center border border-gray-700 shadow-inner">
+                <div class="bg-white p-3 rounded-2xl w-full h-full flex items-center justify-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify({ registrationId: scanResult.registrationId }))}" alt="QR Code" class="w-full h-full object-contain rounded-xl" />
                 </div>
             </div>
 
-            <!-- Bottom Strip -->
-            <div class="bg-gray-100 text-center text-xs text-gray-600 py-2">
-                Please wear this pass visibly at all times while on premises.
+            <!-- Registration ID -->
+            <div class="text-center mt-5">
+                <p class="text-gray-400 text-sm font-bold tracking-[0.2em] uppercase">
+                    ID: ${regIdShort}
+                </p>
+            </div>
+
+            <!-- Visitor Details Grid -->
+            <div class="px-8 mt-8 mb-4 grid grid-cols-2 gap-y-5 gap-x-4">
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Event</p>
+                    <p class="text-gray-200 text-sm font-semibold">${scanResult.eventName || "N/A"}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Date</p>
+                    <p class="text-gray-200 text-sm font-semibold">${eventDate}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Venue</p>
+                    <p class="text-gray-200 text-sm font-semibold">${eventDetails?.venue || "Main Block"}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Category</p>
+                    <p class="text-[#06b6d4] text-sm font-bold">${eventDetails?.category || "Event"}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Organizer</p>
+                    <p class="text-gray-200 text-sm font-semibold">${eventDetails?.organizer || "N/A"}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Entry Time</p>
+                    <p class="text-gray-200 text-sm font-semibold">${scanResult.entryTime}</p>
+                </div>
+                ${scanResult.department ? `
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Department</p>
+                    <p class="text-gray-200 text-sm font-semibold">${scanResult.department}</p>
+                </div>` : ""}
+                ${scanResult.year ? `
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Year</p>
+                    <p class="text-gray-200 text-sm font-semibold">${scanResult.year}</p>
+                </div>` : ""}
+                ${scanResult.phone ? `
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Phone</p>
+                    <p class="text-gray-200 text-sm font-semibold">${scanResult.phone}</p>
+                </div>` : ""}
+                ${scanResult.email ? `
+                <div>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-wider font-bold mb-1">Email</p>
+                    <p class="text-gray-200 text-sm font-semibold" style="font-size:11px;word-break:break-all;">${scanResult.email}</p>
+                </div>` : ""}
+            </div>
+
+            <!-- Pass Type Badge -->
+            <div class="text-center mb-4">
+                <span class="bg-[#8b5cf6]/20 text-[#a78bfa] px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border border-[#8b5cf6]/30">
+                    ${scanResult.passType || "Guest"} Pass
+                </span>
+            </div>
+
+            <div class="bg-[#1f2937] py-5 text-center mt-auto border-t border-gray-800">
+                <p class="text-gray-400 text-xs font-bold tracking-[0.15em] uppercase">
+                    Valid For One-Time Authorized Entry
+                </p>
             </div>
 
         </div>
@@ -188,10 +232,20 @@ function QRScanner() {
         entryTime: new Date().toLocaleTimeString(),
         status: json.action === "OUT" ? "Checked Out" : "Verified In",
         action: json.action,
+        // Additional visitor details for the printed pass
+        registrationId: json.visitor.registrationId,
+        phone: json.visitor.phone,
+        email: json.visitor.email,
+        department: json.visitor.department,
+        year: json.visitor.year,
+        eventId: json.visitor.eventId,
       });
 
       setEventDetails({
         venue: json.eventData?.venue || "Main Block",
+        date: json.eventData?.date,
+        category: json.eventData?.category || "Event",
+        organizer: json.eventData?.organizer || "N/A",
         currentSession: json.eventData?.currentSession || "Active Event",
         sessionTime: json.eventData?.sessionTime || "10:00 - 12:00",
       });
