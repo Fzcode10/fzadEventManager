@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
 const connectDB = require('./databaseConnection');
 const VisitorRoute = require('./routes/visitorRoute');
 const HostRoute = require('./routes/hostRoute');
@@ -7,7 +8,6 @@ const Security = require('./routes/securityRoute');
 const Admin = require('./routes/adminRoute');
 const Event = require('./routes/eventRoute');
 
-dotenv.config();
 
 connectDB();
 

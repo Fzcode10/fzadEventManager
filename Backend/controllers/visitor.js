@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const QRCode = require("qrcode");
 const nodemailer = require('nodemailer');
 const EventDetials = require('../models/eventDetiials');
+const uploadCloudinary = require('../config/cloudinary.js');
 
 // const createToken = (_id) => {
 //     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
@@ -281,12 +282,24 @@ exports.registerEvent = async (req, res) => {
 
         const photo = req.file ? req.file.path : null;
 
+        if(photo == null){
+            return res.status(400).json({ error: "Photo !!" });
+        }
+
+        const uploadResult = await uploadCloudinary(photo);
+        const photoUrl = uploadResult?.secure_url || uploadResult?.url;
+        console.log("photo Url ", photoUrl);
+
+        if(!photoUrl){
+            return res.status(400).json({ error: "Photo upload failed" });
+        }
+
         const registeration = await VisitorRrgistrationodule.register(fullName,
             email,
             phone,
             collegeName,
             department,
-            photo,
+            photoUrl,
             year,
             eventName,
             eventId,
