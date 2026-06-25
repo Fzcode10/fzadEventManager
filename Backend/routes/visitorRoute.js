@@ -10,13 +10,13 @@ const router = express.Router();
 
 
 // Signup for Visitor
-router.post('/signup', signupVisitor);
+router.post('/signup', upload.single("profilePhoto"), signupVisitor);
 
 //Login page for visitor
 router.post('/login', loginVisitor);
 
 // Registarion of event 
-router.post('/registration',  authMiddleware, authorize(['visitor']), upload.single("photo"),  registerEvent);
+router.post('/registration',  authMiddleware, authorize(['visitor']),  registerEvent);
 
 // All registred event
 router.get('/allregistredevent', authMiddleware , allEventDetials);

@@ -12,8 +12,8 @@ export const Signup = () => {
     try {
       const res = await fetch("/api/visitor/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formData,
+        // No Content-Type header — browser sets multipart boundary automatically
       });
 
       const json = await res.json();
@@ -27,11 +27,12 @@ export const Signup = () => {
           JSON.stringify({
             name: json.name,
             role: json.role,
+            profilePhoto: json.profilePhoto,
             token: json.token
           })
         );
 
-        dispatch({ type: 'LOGIN', payload: { name: json.name, role: json.role, token: json.token } });
+        dispatch({ type: 'LOGIN', payload: { name: json.name, role: json.role, profilePhoto: json.profilePhoto, token: json.token } });
 
         setIsLoading(false);
       } else {

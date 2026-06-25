@@ -6,8 +6,8 @@ const createRegistrationId = () => {
   return `${nanoid(10).toUpperCase()}`;
 };
 
-const VisitorLoginSchema = new mongoose.Schema({
-    visitorId : {
+const UserLoginSchema = new mongoose.Schema({
+    userId : {
         type: String,
         required: true,
         unique: true
@@ -26,6 +26,9 @@ const VisitorLoginSchema = new mongoose.Schema({
         type: String,
         enum: ["admin", "host", "visitor", "security"],
         default: "visitor"
+    }, profilePhoto: {
+        type: String,
+        default: null
     }, createdBy:{
         type: String,
         default: "visitor"
@@ -34,7 +37,7 @@ const VisitorLoginSchema = new mongoose.Schema({
     timestamps: true
 });
 
-VisitorLoginSchema.statics.signup = async function (email, password, name) {
+UserLoginSchema.statics.signup = async function (email, password, name, profilePhoto = null) {
     console.log(email, password, name);
     const exists = await this.findOne({ email });
 
@@ -45,14 +48,14 @@ VisitorLoginSchema.statics.signup = async function (email, password, name) {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
 
-    const visitorId = createRegistrationId();
+    const userId = createRegistrationId();
 
-    const visitor = await this.create({visitorId, name, email, password: hash });
+    const visitor = await this.create({userId, name, email, password: hash, profilePhoto });
 
     return visitor;
 }
 
-VisitorLoginSchema.statics.login = async function (email, password) {
+UserLoginSchema.statics.login = async function (email, password) {
     const exists = await this.findOne({ email });
 
     if (!exists) {
@@ -70,4 +73,4 @@ VisitorLoginSchema.statics.login = async function (email, password) {
     return exists;
 }
 
-module.exports = mongoose.model("VisitorLoginModule", VisitorLoginSchema);
+module.exports = mongoose.model("userLogin", UserLoginSchema);

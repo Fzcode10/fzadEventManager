@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { nanoid } = require('nanoid');
-const VisitorLoginModule = require('./visitorLogin');
+const userLogin = require('./userLogin');
 
 const createRegistrationId = () => {
   return `TECH2026-${nanoid(6).toUpperCase()}`;
@@ -40,7 +40,7 @@ const visitorSchema = new mongoose.Schema({
   },
 
   year: {
-    type: String,   
+    type: String,
   },
 
   eventName: {
@@ -49,17 +49,12 @@ const visitorSchema = new mongoose.Schema({
     default: "fzad"
   },
 
-  photo: {              
-    type: String,
-    trim: true
-  },
-
   registrationId: {
     type: String,
     unique: true
   },
 
-  eventId:{
+  eventId: {
     type: String,
     required: true
   },
@@ -69,33 +64,33 @@ const visitorSchema = new mongoose.Schema({
     enum: ["pending", "success", "free", "rejected"],
     default: "pending"
   },
-  
-  eventStatus :{
+
+  eventStatus: {
     type: Boolean,
     default: true
   }
-  
+
 }, {
-    timestamps: true
+  timestamps: true
 });
 
-visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, photo, year, eventName, eventId , userId ){
-  const exists = await VisitorLoginModule.findOne({email});
-  const alreadyRegister = await this.findOne({email, eventId});
+visitorSchema.statics.register = async function (fullName, email, phone, collegeName, department, year, eventName, eventId, userId) {
+  const exists = await userLogin.findOne({ email });
+  const alreadyRegister = await this.findOne({ email, eventId });
 
-  if(!exists) {
+  if (!exists) {
     throw Error("Signup first");
   }
 
-  if(alreadyRegister){
-    throw Error("Already Register"); 
+  if (alreadyRegister) {
+    throw Error("Already Register");
   }
-  
+
   const rId = createRegistrationId();
 
-  const visitorRegister = await this.create({fullName, email, phone, collegeName, department, photo, year, eventName,eventId, userId, registrationId : rId});
+  const visitorRegister = await this.create({ fullName, email, phone, collegeName, department, year, eventName, eventId, userId, registrationId: rId });
 
-  if(!visitorRegister) {
+  if (!visitorRegister) {
     throw Error("Registration failed!");
   }
 

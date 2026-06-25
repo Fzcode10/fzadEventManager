@@ -1,22 +1,25 @@
-const VisitorLoginModule = require('../models/visitorLogin');
+const userLogin = require('../models/userLogin');
 const jwt = require('jsonwebtoken');
 const EventDetials = require('../models/eventDetiials');
 const { nanoid } = require('nanoid');
 const sendMail = require('../utils/mailSender');
+const bcrypt = require('bcrypt');
+const uploadCloudinary = require('../config/cloudinary.js');
+const OTP = require('../models/otpStoreModel');
 
 exports.getProfile = async (req, res) => {
   try {
     const decoded = req.user;
 
-    if(!decoded){
+    if (!decoded) {
       return res.status(400).json({
         msg: "User token may not valid"
       })
     }
-    
+
     // 2. Find user and only fetch needed fields from DB
     // We fetch 'name', 'email', and 'role'
-    const user = await VisitorLoginModule.findById(decoded.id).select('name email role');
+    const user = await userLogin.findById(decoded.id).select('name email role profilePhoto');
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -26,7 +29,8 @@ exports.getProfile = async (req, res) => {
     res.status(200).json({
       fullName: user.name, // Mapping 'name' to 'fullName'
       email: user.email,
-      role: user.role
+      role: user.role,
+      profilePhoto: user.profilePhoto
     });
 
   } catch (error) {
@@ -39,81 +43,81 @@ exports.getProfile = async (req, res) => {
 };
 
 exports.createEvent = async (req, res) => {
-    try {
-        const decoded = req.user;
+  try {
+    const decoded = req.user;
 
-        if (!decoded || decoded.role !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                message: 'Only admin can create events'
-            });
-        }
-
-        const { 
-            title, 
-            eventOrganizer, 
-            description, 
-            dateOFEvent, 
-            location, 
-            category, 
-            remaningSlots 
-        } = req.body;
-
-        // Validation check
-        if (!title || !eventOrganizer || !dateOFEvent || !location || !remaningSlots) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Please provide all required fields." 
-            });
-        }
-
-        // Generate a unique eventId (required by schema)
-        const eventId = `${nanoid(10).toUpperCase()}`;
-
-        // Create the new event with all required schema fields
-        const newEvent = new EventDetials({
-            title,
-            eventOrganizer,
-            description,
-            dateOFEvent,
-            location,
-            category,
-            remaningSlots,
-            hostId: decoded.id,   // required by schema
-            eventId: eventId      // required by schema
-        });
-
-        // Save to MongoDB
-        const savedEvent = await newEvent.save();
-
-        res.status(201).json({
-            success: true,
-            message: "Event created successfully!",
-            data: savedEvent
-        });
-
-    } catch (error) {
-        console.error("Error creating event:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal Server Error", 
-            error: error.message 
-        });
+    if (!decoded || decoded.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admin can create events'
+      });
     }
+
+    const {
+      title,
+      eventOrganizer,
+      description,
+      dateOFEvent,
+      location,
+      category,
+      remaningSlots
+    } = req.body;
+
+    // Validation check
+    if (!title || !eventOrganizer || !dateOFEvent || !location || !remaningSlots) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields."
+      });
+    }
+
+    // Generate a unique eventId (required by schema)
+    const eventId = `${nanoid(10).toUpperCase()}`;
+
+    // Create the new event with all required schema fields
+    const newEvent = new EventDetials({
+      title,
+      eventOrganizer,
+      description,
+      dateOFEvent,
+      location,
+      category,
+      remaningSlots,
+      hostId: decoded.id,   // required by schema
+      eventId: eventId      // required by schema
+    });
+
+    // Save to MongoDB
+    const savedEvent = await newEvent.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Event created successfully!",
+      data: savedEvent
+    });
+
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
 };
 
 exports.allEvents = async (req, res) => {
-  try{
+  try {
     const decoded = req.user;
 
-    if(!decoded){
+    if (!decoded) {
       return res.status(400).json({
         success: false,
         msg: "User token may not valid"
       })
     }
 
-    const user = await VisitorLoginModule.findById(decoded.id);
+    const user = await userLogin.findById(decoded.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -165,11 +169,11 @@ exports.allEvents = async (req, res) => {
 
     let events;
 
-    if(category === 'pending'){
-      events = await EventDetials.find({status: 'pending'}).select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
-      .sort({ dateOFEvent: 1, createdAt: -1 })
-      .lean();
-    }else{
+    if (category === 'pending') {
+      events = await EventDetials.find({ status: 'pending' }).select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
+        .sort({ dateOFEvent: 1, createdAt: -1 })
+        .lean();
+    } else {
       events = await EventDetials.find(query)
         .select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
         .sort({ dateOFEvent: 1, createdAt: -1 })
@@ -177,7 +181,7 @@ exports.allEvents = async (req, res) => {
     }
 
     const hostIds = [...new Set(events.map((event) => event.hostId).filter(Boolean))];
-    const hosts = await VisitorLoginModule.find({ _id: { $in: hostIds } })
+    const hosts = await userLogin.find({ _id: { $in: hostIds } })
       .select('_id email name')
       .lean();
 
@@ -198,9 +202,9 @@ exports.allEvents = async (req, res) => {
       events: eventsWithHostInfo
     })
 
-  }catch(error){
+  } catch (error) {
     res.status(400).json({
-      error : error.message
+      error: error.message
     })
   }
 }
@@ -235,7 +239,7 @@ exports.updateEventStatus = async (req, res) => {
 
     let bookingStatus = false;
 
-    if(status === 'approved'){
+    if (status === 'approved') {
       bookingStatus = true;
     }
 
@@ -303,7 +307,7 @@ exports.requestEventUpdate = async (req, res) => {
       });
     }
 
-    const host = await VisitorLoginModule.findById(event.hostId).select('email name');
+    const host = await userLogin.findById(event.hostId).select('email name');
 
     if (!host || !host.email) {
       return res.status(404).json({
@@ -355,35 +359,35 @@ exports.requestEventUpdate = async (req, res) => {
 
 exports.adNewStaff = async (req, res) => {
   try {
-    
+
     const { email, name, password, role } = req.body;
 
     // console.log(req.body);
     // 1. Validation
     if (!email || !name || !password || !role) {
       // Using return to stop execution immediately
-      return res.status(400).json({ 
-        success: false, 
-        error: "All fields (email, name, password, role) are required." 
+      return res.status(400).json({
+        success: false,
+        error: "All fields (email, name, password, role) are required."
       });
     }
 
     const user = req.user;
     // console.log(userRole);
-    if(user.role !== "admin"){
+    if (user.role !== "admin") {
       throw Error("Function unauthorized");
-    } 
-   
-    const staff = await VisitorLoginModule.signup(email, password, name);
+    }
+
+    const staff = await userLogin.signup(email, password, name);
 
     // 4. Assign Role & Creator Metadata
     staff.role = role;
-    staff.createdBy = user.id; 
+    staff.createdBy = user.id;
     await staff.save();
 
-   
-    res.status(201).json({ 
-      success: true, 
+
+    res.status(201).json({
+      success: true,
       newStaff: {
         name: staff.name,
         email: staff.email,
@@ -396,5 +400,122 @@ exports.adNewStaff = async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+};
+
+exports.sendUpdateOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await userLogin.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const email = user.email;
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    const otpData = new OTP({
+      email,
+      otp
+    });
+
+    await otpData.save();
+
+    await sendMail(
+      email,
+      "Your Profile Update Verification Code",
+      `
+      <div style="font-family: Arial, sans-serif; background:#f4f6fb; padding:40px 0;">
+        <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+          <div style="background:#4f46e5; padding:20px; text-align:center;">
+            <h1 style="color:white; margin:0; font-size:22px;">Profile Update Verification</h1>
+          </div>
+          <div style="padding:30px; text-align:center;">
+            <h2 style="color:#333; margin-bottom:10px;">Verify Your Identity</h2>
+            <p style="color:#666; font-size:14px;">Use the One-Time Password (OTP) below to authorize the changes to your profile details.</p>
+            <div style="background:#f0f2f5; display:inline-block; padding:15px 30px; border-radius:8px; font-size:28px; font-weight:bold; letter-spacing:4px; color:#4f46e5; margin:20px 0;">
+              ${otp}
+            </div>
+            <p style="color:#999; font-size:12px;">This code is valid for 5 minutes. If you did not request this update, please ignore this email.</p>
+          </div>
+        </div>
+      </div>
+      `
+    );
+
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { name, password, otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ error: "OTP is required to verify changes" });
+    }
+
+    const user = await userLogin.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify OTP
+    const otpRecord = await OTP.findOne({ email: user.email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    // OTP is correct. Clean up OTP record.
+    await OTP.deleteOne({ _id: otpRecord._id });
+
+    // Handle Profile Photo upload to Cloudinary if provided
+    let profilePhoto = user.profilePhoto;
+    if (req.file) {
+      const uploadResult = await uploadCloudinary(req.file.path);
+      profilePhoto = uploadResult?.secure_url || uploadResult?.url;
+      if (!profilePhoto) {
+        return res.status(400).json({ error: "Profile photo upload failed" });
+      }
+    }
+
+    // Update name if provided
+    if (name && name.trim()) {
+      user.name = name.trim();
+    }
+
+    // Update password if provided
+    if (password && password.trim()) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password.trim(), salt);
+    }
+
+    user.profilePhoto = profilePhoto;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePhoto: user.profilePhoto
+      }
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

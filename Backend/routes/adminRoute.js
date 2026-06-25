@@ -1,6 +1,7 @@
 const express = require('express');
-const {getProfile, createEvent, allEvents, updateEventStatus, requestEventUpdate, adNewStaff} = require('../controllers/adminController');
+const {getProfile, createEvent, allEvents, updateEventStatus, requestEventUpdate, adNewStaff, sendUpdateOtp, updateProfile} = require('../controllers/adminController');
 const authMiddleware = require('../middleware/auth');
+const upload = require('../middleware/uploadPhotos');
 
 const router = express.Router();
 
@@ -15,5 +16,9 @@ router.patch('/events/:id/status', authMiddleware, updateEventStatus);
 router.patch('/events/:id/request-update', authMiddleware, requestEventUpdate);
 
 router.post('/addnewstaff', authMiddleware, adNewStaff);
+
+router.post('/send-update-otp', authMiddleware, sendUpdateOtp);
+
+router.post('/update-profile', authMiddleware, upload.single("profilePhoto"), updateProfile);
  
 module.exports = router

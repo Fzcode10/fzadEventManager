@@ -225,7 +225,7 @@ function QRScanner() {
 
       setScanResult({
         name: json.visitor.fullName,
-        profilePic: json.visitor.photo || DEFAULT_AVATAR,
+        profilePic: json.visitor.profilePhoto || DEFAULT_AVATAR,
         eventName: json.visitor.eventName,
         passType: json.visitor.passType || "Guest",
         organization: json.visitor.collegeName,

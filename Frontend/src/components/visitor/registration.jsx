@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Upload, AlertTriangle, ShieldCheck, Clipboard } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Clipboard } from "lucide-react";
 
 const RegistrationForm = ({ event, onSuccess, onError }) => {
   const [formData, setFormData] = useState({
@@ -14,7 +14,6 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
     eventId: event?.eventId || "", 
   });
 
-  const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -36,27 +35,10 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
     if (error) setError(""); 
   };
 
-  const handlePhoto = (e) => {
-    setPhoto(e.target.files[0]);
-    if (error) setError("");
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
-    if (!photo) {
-      setError("Please upload a profile photo.");
-      setLoading(false);
-      return;
-    }
-
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-    data.append("photo", photo);
 
     const token = localStorage.getItem("user");
 
@@ -68,13 +50,12 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
 
     const cleanToken = token.replace(/"/g, "");
 
-    console.log(data);
-
     try {
       const response = await fetch("/api/visitor/registration", {
         method: "POST",
-        body: data,
+        body: JSON.stringify(formData),
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${cleanToken}`
         },
       });
@@ -160,24 +141,9 @@ const RegistrationForm = ({ event, onSuccess, onError }) => {
           <input type="text" name="collegeName" placeholder="University Name" className={inputStyle} onChange={handleChange} required disabled={loading} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label className={labelStyle}>Department</label>
-                <input type="text" name="department" placeholder="e.g. CSE" className={inputStyle} onChange={handleChange} disabled={loading} />
-            </div>
-            <div>
-                <label className={labelStyle}>Profile Photo</label>
-                <div className="relative">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handlePhoto} 
-                    required 
-                    disabled={loading} 
-                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-3.5 file:rounded-xl file:border-0 file:bg-slate-950 file:text-cyan-400 hover:file:bg-slate-800 file:font-bold file:cursor-pointer cursor-pointer border border-slate-850 rounded-xl" 
-                  />
-                </div>
-            </div>
+        <div>
+            <label className={labelStyle}>Department</label>
+            <input type="text" name="department" placeholder="e.g. CSE" className={inputStyle} onChange={handleChange} disabled={loading} />
         </div>
 
         {error && (

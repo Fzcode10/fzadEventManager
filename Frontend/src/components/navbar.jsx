@@ -74,7 +74,7 @@ const Navbar = () => {
                   </div>
                   <div className="relative h-10 w-10 p-0.5 rounded-full border border-slate-700 group-hover:border-violet-500 transition-colors overflow-hidden">
                     <img
-                      src={user.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
+                      src={user.profilePhoto || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
                       alt="profile"
                       className="rounded-full object-cover w-full h-full"
                     />
@@ -155,7 +155,7 @@ const Navbar = () => {
                 >
                   <div className="h-10 w-10 p-0.5 rounded-full border border-slate-700 overflow-hidden">
                     <img
-                      src={user.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
+                      src={user.profilePhoto || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
                       alt="profile"
                       className="rounded-full object-cover w-full h-full"
                     />

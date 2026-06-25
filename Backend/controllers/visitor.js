@@ -1,4 +1,4 @@
-const VisitorLoginModule = require('../models/visitorLogin');
+const userLogin = require('../models/userLogin.js');
 const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 const OTP = require('../models/otpStoreModel');
 const validator = require('validator');
@@ -22,7 +22,7 @@ exports.isExist = async (req, res) => {
             throw Error("Invalid email")
         }
 
-        const visitor = await VisitorLoginModule.findOne({ email });
+        const visitor = await userLogin.findOne({ email });
 
         if (visitor) {
             throw Error("Already signup!!");
@@ -51,7 +51,7 @@ exports.sentOtp = async (req, res) => {
             throw Error("Invalid email")
         }
 
-        const visitor = await VisitorLoginModule.findOne({ email  });
+        const visitor = await userLogin.findOne({ email });
 
         console.log(visitor);
 
@@ -175,7 +175,7 @@ exports.verifyOtp = async (req, res) => {
 }
 
 // Signup Visitor
-exports.signupVisitor =  async (req, res) => {
+exports.signupVisitor = async (req, res) => {
 
     const { email, password, name } = req.body;
 
@@ -191,15 +191,25 @@ exports.signupVisitor =  async (req, res) => {
             throw Error("Invalid Email");
         }
 
-        const visitor = await VisitorLoginModule.signup(email, password, name);
+        // Handle profile photo upload to Cloudinary
+        let profilePhoto = null;
+        if (req.file) {
+            const uploadResult = await uploadCloudinary(req.file.path);
+            profilePhoto = uploadResult?.secure_url || uploadResult?.url;
+            if (!profilePhoto) {
+                return res.status(400).json({ error: "Profile photo upload failed" });
+            }
+        }
+
+        const visitor = await userLogin.signup(email, password, name, profilePhoto);
         // const token = createToken(visitor._id);
         const token = jwt.sign({
             id: visitor._id,
             role: visitor.role
-        },   process.env.SECRET, { expiresIn: '3d' });
+        }, process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
-            name:  visitor.name, role:  visitor.role, token
+            name: visitor.name, role: visitor.role, profilePhoto: visitor.profilePhoto, token
         })
 
     } catch (error) {
@@ -222,7 +232,7 @@ exports.loginVisitor = async (req, res) => {
             throw Error("Fill all mindatory field!!");
         }
 
-        const visitor = await VisitorLoginModule.login(email, password);
+        const visitor = await userLogin.login(email, password);
 
         // console.log(visitor);
 
@@ -230,10 +240,10 @@ exports.loginVisitor = async (req, res) => {
         const token = jwt.sign({
             id: visitor._id,
             role: visitor.role
-        },   process.env.SECRET, { expiresIn: '3d' });
+        }, process.env.SECRET, { expiresIn: '3d' });
 
         return res.status(200).json({
-           name:  visitor.name, role:  visitor.role, token
+            name: visitor.name, role: visitor.role, profilePhoto: visitor.profilePhoto, token
         })
 
 
@@ -277,36 +287,16 @@ exports.registerEvent = async (req, res) => {
             throw Error("Invalid Email");
         }
 
-        // console.log("BODY:", req.body);
-        // console.log("FILE:", req.file);
-
-        const photo = req.file ? req.file.path : null;
-
-        if(photo == null){
-            return res.status(400).json({ error: "Photo !!" });
-        }
-
-        const uploadResult = await uploadCloudinary(photo);
-        const photoUrl = uploadResult?.secure_url || uploadResult?.url;
-        console.log("photo Url ", photoUrl);
-
-        if(!photoUrl){
-            return res.status(400).json({ error: "Photo upload failed" });
-        }
-
         const registeration = await VisitorRrgistrationodule.register(fullName,
             email,
             phone,
             collegeName,
             department,
-            photoUrl,
             year,
             eventName,
             eventId,
             userId
         );
-
-
 
         return res.status(200).json({
             registeration
@@ -320,56 +310,56 @@ exports.registerEvent = async (req, res) => {
 }
 
 exports.allEventDetials = async (req, res) => {
-  try {
-    const userId = req.user.id;
+    try {
+        const userId = req.user.id;
 
-    // 1. Get registrations
-    const registrations = await VisitorRrgistrationodule.find({ userId });
+        // 1. Get registrations
+        const registrations = await VisitorRrgistrationodule.find({ userId });
 
-    if (!registrations.length) {
-      return res.status(404).json({ message: "No events found" });
+        if (!registrations.length) {
+            return res.status(404).json({ message: "No events found" });
+        }
+
+        // 2. Extract eventIds
+        const eventIds = registrations.map((item) => item.eventId);
+
+        // 3. Get events
+        const events = await EventDetials.find({
+            eventId: { $in: eventIds }
+        }).select("title description eventOrganizer dateOFEvent location category bookingStatus eventId").lean();
+
+        console.log(events);
+        // console.log(eventIds);
+
+        // 4. Merge event + paymentStatus
+        const finalData = events.map((event) => {
+            const registration = registrations.find(
+                (r) => r.eventId.toString() === event.eventId.toString()
+            );
+
+            return {
+                ...event,
+                paymentStatus: registration?.paymentStatus || "pending",
+            };
+        });
+
+        return res.status(200).json({
+            events: finalData,
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            error: error.message,
+        });
     }
-
-    // 2. Extract eventIds
-    const eventIds = registrations.map((item) => item.eventId);
-
-    // 3. Get events
-    const events = await EventDetials.find({
-      eventId: { $in: eventIds }
-    }).select ("title description eventOrganizer dateOFEvent location category bookingStatus eventId").lean();
-
-    console.log(events);
-    // console.log(eventIds);
-
-    // 4. Merge event + paymentStatus
-    const finalData = events.map((event) => {
-      const registration = registrations.find(
-        (r) => r.eventId.toString() === event.eventId.toString()
-      );
-
-      return {
-        ...event,
-        paymentStatus: registration?.paymentStatus || "pending",
-      };
-    });
-
-    return res.status(200).json({
-      events: finalData,
-    });
-
-  } catch (error) {
-    return res.status(400).json({
-      error: error.message,
-    });
-  }
 };
 
 exports.getticket = async (req, res) => {
 
     try {
-        const {eventId } = req.body;
+        const { eventId } = req.body;
         const decoded = req.user;
-        if ( !eventId) {
+        if (!eventId) {
             return res.status(400).json({ error: "Invalid eventId" });
         }
 
@@ -387,8 +377,8 @@ exports.getticket = async (req, res) => {
             return res.status(403).json({ error: "Waiting for permission" });
         }
 
-        if(visitor.paymentStatus === "rejected") {
-            return res.status(403).json({error: "Rejected"});
+        if (visitor.paymentStatus === "rejected") {
+            return res.status(403).json({ error: "Rejected" });
         }
 
         // QR data
@@ -412,10 +402,10 @@ exports.getticket = async (req, res) => {
 };
 
 exports.allEvent = async (req, res) => {
-    try{
+    try {
         const events = await EventDetials.find({ status: 'approved' });
 
-        if(!events){
+        if (!events) {
             throw Error("Unable to find events");
         }
 
@@ -424,7 +414,7 @@ exports.allEvent = async (req, res) => {
             events
         })
 
-    }catch(error){
+    } catch (error) {
         return res.status(404).json({
             error: error.message
         })

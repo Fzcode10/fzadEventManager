@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }) => {
             ...user,
             name: userDetails.name,
             role: userDetails.role,
+            profilePhoto: userDetails.profilePhoto,
           },
         });
       }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Signup } from "../../hooks/useSignup";
-import { CheckCircle2, User, Lock, ArrowRight, ShieldAlert } from "lucide-react";
+import { CheckCircle2, User, Lock, ArrowRight, ShieldAlert, Camera, X } from "lucide-react";
 
 const Signupform = ({ email }) => {
   const { signup, error, isLoading } = Signup();
@@ -10,6 +10,9 @@ const Signupform = ({ email }) => {
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [signupCompleted, setSignupCompleted] = useState(false);
+
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,6 +26,43 @@ const Signupform = ({ email }) => {
     if (localError) setLocalError(null); // Clear error when user types
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setLocalError("Only JPG, JPEG, PNG, and WEBP images are allowed");
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setLocalError("Image must be smaller than 5MB");
+      return;
+    }
+
+    setProfilePhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    if (localError) setLocalError(null);
+  };
+
+  const removePhoto = () => {
+    setProfilePhoto(null);
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+      setPhotoPreview(null);
+    }
+  };
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
 
   const handleVerifyOtp = async () => {
     if (!userOtp) return;
@@ -51,7 +91,16 @@ const Signupform = ({ email }) => {
       return;
     }
 
-    await signup(formData);
+    // Build FormData for multipart upload
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+    if (profilePhoto) {
+      data.append("profilePhoto", profilePhoto);
+    }
+
+    await signup(data);
     
     // We check if the signup hook updated its internal error state
     if (!error) {
@@ -125,6 +174,41 @@ const Signupform = ({ email }) => {
       {isOtpVerified && (
         <form onSubmit={handleSubmit} className="space-y-4 bg-slate-900 border border-slate-800/80 p-8 rounded-3xl shadow-2xl animate-in fade-in duration-350">
           <h2 className="text-xl font-bold text-white mb-2">Profile Details</h2>
+
+          {/* Profile Photo Upload */}
+          <div className="flex flex-col items-center gap-3">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Profile Photo</label>
+            <div className="relative group">
+              {photoPreview ? (
+                <div className="relative">
+                  <img
+                    src={photoPreview}
+                    alt="Profile preview"
+                    className="w-24 h-24 rounded-2xl object-cover ring-2 ring-violet-500/30 shadow-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removePhoto}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-400 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-700 hover:border-violet-500 bg-slate-950 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-slate-900">
+                  <Camera size={24} className="text-slate-500 mb-1" />
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Upload</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-600 font-medium">JPG, PNG or WEBP · Max 5MB</p>
+          </div>
 
           <div className="relative flex items-center">
             <User size={18} className="absolute left-4 text-slate-500" />

@@ -1,5 +1,6 @@
 const visitorCheckStatusModule = require('../models/visitorCheckInOut.js');
 const VisitorModule = require('../models/visitorRegisteration.js');
+const userLogin = require('../models/userLogin.js');
 const EventDetials = require('../models/eventDetiials.js');
 
 exports.scanQrToggle = async (req, res) => {
@@ -16,6 +17,12 @@ exports.scanQrToggle = async (req, res) => {
             return res.status(404).json({ error: "Visitor not found in system!" });
         }
 
+        // Fetch profile photo from userLogin (user profile)
+        const userLoginDoc = await userLogin.findOne({ email: visitor.email }).select('profilePhoto');
+        if (userLoginDoc?.profilePhoto) {
+            visitor._doc.profilePhoto = userLoginDoc.profilePhoto;
+        }
+
         // Fetch event details for the pass
         const eventData = await EventDetials.findOne({ eventId: visitor.eventId });
 
@@ -28,7 +35,7 @@ exports.scanQrToggle = async (req, res) => {
                 { registrationId }, // Use consistent lowercase 'r'
                 { $set: { checkOutTime: new Date(), status: "OUT" } },
                 { returnDocument: 'after' } // This returns the updated document instead of the old one
-            ); 
+            );
 
             return res.status(200).json({
                 msg: `Goodbye, ${visitor.fullName}! Check-out successful.`,
