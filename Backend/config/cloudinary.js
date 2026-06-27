@@ -7,12 +7,6 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-console.log("Config Check:", {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? process.env.CLOUDINARY_CLOUD_NAME : "✗ MISSING",
-    api_key: process.env.CLOUDINARY_API_KEY ? process.env.CLOUDINARY_API_KEY : "✗ MISSING",
-    api_secret: process.env.CLOUDINARY_API_SECRET ? process.env.CLOUDINARY_API_SECRET : "✗ MISSING"
-});
-
 const uploadCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null;

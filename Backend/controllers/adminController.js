@@ -6,6 +6,8 @@ const sendMail = require('../utils/mailSender');
 const bcrypt = require('bcrypt');
 const uploadCloudinary = require('../config/cloudinary.js');
 const OTP = require('../models/otpStoreModel');
+const visitorCheckStatusModule = require('../models/visitorCheckInOut');
+const VisitorRrgistrationodule = require('../models/visitorRegisteration');
 
 exports.getProfile = async (req, res) => {
   try {
@@ -170,12 +172,12 @@ exports.allEvents = async (req, res) => {
     let events;
 
     if (category === 'pending') {
-      events = await EventDetials.find({ status: 'pending' }).select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
+      events = await EventDetials.find({ status: 'pending' }).select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus lastUpdatedByHost updateHistory hostId eventId createdAt')
         .sort({ dateOFEvent: 1, createdAt: -1 })
         .lean();
     } else {
       events = await EventDetials.find(query)
-        .select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
+        .select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus lastUpdatedByHost updateHistory hostId eventId createdAt')
         .sort({ dateOFEvent: 1, createdAt: -1 })
         .lean();
     }
@@ -249,6 +251,7 @@ exports.updateEventStatus = async (req, res) => {
         $set: {
           status,
           updateStatus: false,
+          lastUpdatedByHost: false,
           bookingStatus: bookingStatus
         }
       },
@@ -334,10 +337,16 @@ exports.requestEventUpdate = async (req, res) => {
     event.updateStatus = true;
     event.status = 'pending';
     event.bookingStatus = false;
+    event.lastUpdatedByHost = false;
+    event.updateHistory.push({
+      instruction: instruction.trim(),
+      sentAt: new Date(),
+      sentBy: 'admin'
+    });
     await event.save();
 
     const updatedEvent = await EventDetials.findById(id)
-      .select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus hostId eventId createdAt')
+      .select('title eventOrganizer description dateOFEvent location category remaningSlots status bookingStatus updateStatus lastUpdatedByHost updateHistory hostId eventId createdAt')
       .lean();
 
     return res.status(200).json({
@@ -517,5 +526,83 @@ exports.updateProfile = async (req, res) => {
 
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getCheckLogs = async (req, res) => {
+  try {
+    const decoded = req.user;
+    if (!decoded || decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Unauthorized access' });
+    }
+
+    const { status, search } = req.query;
+    let query = {};
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    let logs = await visitorCheckStatusModule.find(query).lean();
+
+    const registrationIds = logs.map(l => l.registrationId);
+    const registrations = await VisitorRrgistrationodule.find({ registrationId: { $in: registrationIds } }).lean();
+    const regMap = new Map(registrations.map(r => [r.registrationId, r]));
+
+    let results = logs.map(log => {
+      const reg = regMap.get(log.registrationId);
+      return {
+        ...log,
+        visitorName: reg ? reg.fullName : 'N/A',
+        visitorEmail: reg ? reg.email : 'N/A',
+        phone: reg ? reg.phone : 'N/A',
+        collegeName: reg ? reg.collegeName : 'N/A'
+      };
+    });
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      results = results.filter(r => 
+        r.visitorName.toLowerCase().includes(searchLower) ||
+        r.registrationId.toLowerCase().includes(searchLower) ||
+        r.eventName.toLowerCase().includes(searchLower)
+      );
+    }
+
+    results.sort((a, b) => new Date(b.checkIntime) - new Date(a.checkIntime));
+
+    return res.status(200).json({ success: true, logs: results });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getAllVisitors = async (req, res) => {
+  try {
+    const decoded = req.user;
+    if (!decoded || decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Unauthorized access' });
+    }
+
+    const { search, paymentStatus } = req.query;
+    let query = {};
+    if (paymentStatus && paymentStatus !== 'all') {
+      query.paymentStatus = paymentStatus;
+    }
+
+    let visitors = await VisitorRrgistrationodule.find(query).sort({ createdAt: -1 }).lean();
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      visitors = visitors.filter(v => 
+        v.fullName.toLowerCase().includes(searchLower) ||
+        v.email.toLowerCase().includes(searchLower) ||
+        v.registrationId.toLowerCase().includes(searchLower) ||
+        v.eventName.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return res.status(200).json({ success: true, visitors });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

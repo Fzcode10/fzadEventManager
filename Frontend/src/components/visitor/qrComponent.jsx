@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, X, AlertTriangle } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 function GenerateQR({ event, onBack }) {
   const [qr, setQr] = useState("");
@@ -92,6 +93,65 @@ function GenerateQR({ event, onBack }) {
       alert("Could not save pass. Please try again.");
     } finally {
       setIsCapturing(false);
+    }
+  };
+
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [80, 120]
+      });
+
+      // Background slate-900
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 80, 120, "F");
+
+      // Header Banner violet-500
+      doc.setFillColor(139, 92, 246);
+      doc.rect(0, 0, 80, 20, "F");
+
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("DIGITAL ENTRY PASS", 40, 12, { align: "center" });
+
+      // Visitor Name
+      doc.setTextColor(248, 250, 252);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(event.fullName || "Attendee", 40, 38, { align: "center" });
+
+      // Event Title
+      doc.setTextColor(6, 182, 212);
+      doc.setFontSize(10);
+      doc.text(event.title || "Event Pass", 40, 46, { align: "center" });
+
+      // QR Image
+      if (qr) {
+        doc.addImage(qr, "PNG", 18, 55, 44, 44);
+      }
+
+      // Ticket ID
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(7);
+      doc.text(`ID: ${event.eventId?.slice(-8).toUpperCase() || "TICKET"}`, 40, 106, { align: "center" });
+
+      // Footer banner slate-800
+      doc.setFillColor(30, 41, 59);
+      doc.rect(0, 112, 80, 8, "F");
+
+      doc.setTextColor(148, 163, 184);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      doc.text("VALID FOR ONE-TIME ENTRY", 40, 117, { align: "center" });
+
+      doc.save(`Badge-${event?.title || "Event"}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Failed to download PDF badge. Please try again.");
     }
   };
 
@@ -217,19 +277,27 @@ function GenerateQR({ event, onBack }) {
             </div>
 
             {/* Actions */}
-            <div className="mt-6 flex gap-3 w-full max-w-[320px]">
+            <div className="mt-6 flex flex-col gap-2.5 w-full max-w-[320px]">
+              <div className="flex gap-2.5">
+                <button
+                  onClick={takeScreenshot}
+                  disabled={isCapturing}
+                  className="flex-1 py-3.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 transition-all active:scale-95 flex justify-center items-center gap-2"
+                >
+                  <Download size={16} /> Save Image
+                </button>
+                <button
+                  onClick={downloadPDF}
+                  className="flex-1 py-3.5 rounded-xl bg-gradient-accent text-white font-bold hover:shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 flex justify-center items-center gap-2"
+                >
+                  <Download size={16} /> Save PDF
+                </button>
+              </div>
               <button
                 onClick={onBack}
-                className="flex-1 py-3.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-bold hover:bg-slate-800 transition-all active:scale-95 flex justify-center items-center gap-2"
+                className="w-full py-3.5 rounded-xl border border-slate-800 hover:bg-slate-900 text-slate-400 font-bold hover:text-white transition-all active:scale-95 flex justify-center items-center gap-2"
               >
-                <X size={16} /> Close
-              </button>
-              <button
-                onClick={takeScreenshot}
-                disabled={isCapturing}
-                className="flex-[2] py-3.5 rounded-xl bg-gradient-accent text-white font-bold hover:shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 flex justify-center items-center gap-2"
-              >
-                {isCapturing ? "Saving..." : <><Download size={16} /> Save Pass</>}
+                <X size={16} /> Close Pass View
               </button>
             </div>
           </>

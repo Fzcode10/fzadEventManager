@@ -1,6 +1,6 @@
 const express = require('express');
 
-const {sendInvite, makeFreeAndInvitation, getUpcomingEvents, setApproval, createEventRequest} = require('../controllers/host');
+const {sendInvite, makeFreeAndInvitation, getUpcomingEvents, setApproval, createEventRequest, updateEventDetails} = require('../controllers/host');
 const authMiddleware = require('../middleware/auth');
 const authorize = require('../middleware/roleAuth');
 
@@ -15,5 +15,7 @@ router.get('/upcomingevents', authMiddleware, authorize(['host']), getUpcomingEv
 router.post('/requestevent',authMiddleware, authorize(['host']),  createEventRequest)
 
 router.patch('/approval/:id', authMiddleware, authorize(['host']), setApproval);
+
+router.patch('/events/:id', authMiddleware, authorize(['host']), updateEventDetails);
 
 module.exports = router

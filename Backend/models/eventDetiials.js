@@ -34,7 +34,7 @@ const eventSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['approved', 'pending', 'rejected', "completed"],
+    enum: ['approved', 'pending', 'rejected', "completed", "update"],
     default: 'pending'
   },
   bookingStatus:{
@@ -46,6 +46,15 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  lastUpdatedByHost: {
+    type: Boolean,
+    default: false
+  },
+  updateHistory: [{
+    instruction: { type: String, required: true },
+    sentAt: { type: Date, default: Date.now },
+    sentBy: { type: String, default: 'admin' }
+  }],
   hostId: {
     type: String,
     required: true

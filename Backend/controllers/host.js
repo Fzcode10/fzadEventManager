@@ -114,7 +114,7 @@ exports.getUpcomingEvents = async (req, res) => {
     const token = req.user;
     console.log(req.user);
 
-    const events = await EventDetials.find({ hostId: token.id }).select("title description dateOFEvent location remaningSlots status updateStatus category eventId eventOrganizer");
+    const events = await EventDetials.find({ hostId: token.id }).select("title description dateOFEvent location remaningSlots status updateStatus lastUpdatedByHost category eventId eventOrganizer");
 
     if (events.length === 0 || !events) {
       return res.status(200).json({
@@ -285,6 +285,69 @@ exports.setApproval = async (req, res) => {
       success: false,
       msg: "Approval failed",
       error: error.message,
+    });
+  }
+};
+
+exports.updateEventDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const token = req.user;
+    const {
+      title,
+      eventOrganizer,
+      description,
+      dateOFEvent,
+      location,
+      category,
+      slots
+    } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Event ID is required"
+      });
+    }
+
+    const event = await EventDetials.findOne({ eventId: id });
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
+    }
+
+    if (event.hostId !== token.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this event"
+      });
+    }
+
+    if (title) event.title = title;
+    if (eventOrganizer) event.eventOrganizer = eventOrganizer;
+    if (description) event.description = description;
+    if (dateOFEvent) event.dateOFEvent = dateOFEvent;
+    if (location) event.location = location;
+    if (category) event.category = category;
+    if (slots !== undefined) event.remaningSlots = slots;
+
+    event.status = 'pending';
+    event.updateStatus = false;
+    event.lastUpdatedByHost = true;
+
+    await event.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Event updated successfully",
+      event
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update event"
     });
   }
 };

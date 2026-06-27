@@ -209,8 +209,21 @@ const HostDashboard = () => {
                     </div>
                   </div>
                   
-                  {/* Action Button */}
-                  {event.status === "approved" && (
+                  {/* Action Buttons */}
+                  {event.updateStatus && (
+                    <button
+                      onClick={() => Navigate(`/host/manage/${event.eventId}`)}
+                      className="mt-6 w-full py-3.5 bg-amber-950/30 border border-amber-900/40 text-amber-400 font-bold rounded-xl hover:bg-amber-900/40 transition-all shadow-lg text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                      </span>
+                      Update Required — Edit Details
+                    </button>
+                  )}
+
+                  {event.status !== "pending" && !event.updateStatus && (
                     <button
                       onClick={() => Navigate(`/host/manage/${event.eventId}`)}
                       className="mt-6 w-full py-3.5 bg-slate-900 border border-slate-700 text-white font-bold rounded-xl hover:bg-gradient-accent hover:border-transparent transition-all shadow-lg text-xs uppercase tracking-wider flex items-center justify-center gap-2"

@@ -29,6 +29,88 @@ const ManageEvent = () => {
   const [email, setEmail] = useState("");
   const [sendEmailLoader, setEmailSendingLoader] = useState(false);
 
+  // Edit Event States
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    eventOrganizer: "",
+    description: "",
+    dateOFEvent: "",
+    location: "",
+    category: "",
+    slots: 0,
+  });
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+
+  const startEditing = () => {
+    const formattedDate = event.dateOFEvent 
+      ? new Date(event.dateOFEvent).toISOString().split('T')[0] 
+      : "";
+    
+    setEditFormData({
+      title: event.title || "",
+      eventOrganizer: event.eventOrganizer || "",
+      description: event.description || "",
+      dateOFEvent: formattedDate,
+      location: event.location || "",
+      category: event.category || "Other",
+      slots: event.remaningSlots || 0,
+    });
+    setEditError("");
+    setEditSuccess("");
+    setIsEditing(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: name === "slots" ? parseInt(value) || 0 : value
+    }));
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError("");
+    setEditSuccess("");
+
+    try {
+      const token = localStorage.getItem("user");
+      if (!token) {
+        Navigate("/");
+        return;
+      }
+
+      const cleanToken = token.replace(/"/g, "");
+
+      const res = await fetch(`/api/host/events/${event.eventId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${cleanToken}`,
+        },
+        body: JSON.stringify(editFormData),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEditSuccess("🎉 Event details updated successfully!");
+        setEvent(data.event);
+        setIsEditing(false);
+        fetchEvent(); // Refresh parent view
+      } else {
+        setEditError(data.message || "Failed to update event details");
+      }
+    } catch (err) {
+      setEditError(err.message || "Server error while saving changes");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   // Fetch event details
   const fetchEvent = async () => {
     try {
@@ -131,6 +213,14 @@ const ManageEvent = () => {
     fetchVisitors();
   }, [id]);
 
+  // Auto-open edit form when admin has requested updates
+  useEffect(() => {
+    if (event && event.updateStatus) {
+      setActiveTab("details");
+      startEditing();
+    }
+  }, [event?.updateStatus]);
+
   const approval = async (registrationId, paymentStatus) => {
     try {
       const token = localStorage.getItem("user");
@@ -225,13 +315,24 @@ const ManageEvent = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-950/50 border border-slate-800/80 px-4 py-2.5 rounded-2xl">
-            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status:</span>
-            {event.status === "approved" ? (
-              <span className="text-xs font-extrabold text-emerald-400 uppercase bg-emerald-950/30 border border-emerald-900/30 px-2.5 py-0.5 rounded-lg">Approved</span>
-            ) : (
-              <span className="text-xs font-extrabold text-amber-400 uppercase bg-amber-950/30 border border-amber-900/30 px-2.5 py-0.5 rounded-lg">{event.status}</span>
-            )}
+          <div className="flex flex-wrap items-center gap-4 bg-slate-950/50 border border-slate-800/80 px-4 py-2.5 rounded-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status:</span>
+              {event.status === "approved" ? (
+                <span className="text-xs font-extrabold text-emerald-400 uppercase bg-emerald-950/30 border border-emerald-900/30 px-2.5 py-0.5 rounded-lg">Approved</span>
+              ) : (
+                <span className="text-xs font-extrabold text-amber-400 uppercase bg-amber-950/30 border border-amber-900/30 px-2.5 py-0.5 rounded-lg">{event.status}</span>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                setActiveTab("details");
+                startEditing();
+              }}
+              className="bg-gradient-accent text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:opacity-90 active:scale-95 flex items-center gap-1"
+            >
+              <Sparkles size={10} /> Update Details
+            </button>
           </div>
         </header>
 
@@ -403,35 +504,199 @@ const ManageEvent = () => {
           )}
 
           {/* Details View */}
-          {activeTab === "details" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h2 className="text-xl font-extrabold text-white flex items-center gap-2 mb-6">
-                  <FileText className="text-cyan-400" size={20} /> Specifications
+          {activeTab === "details" && isEditing && (
+            <form onSubmit={handleSaveEdit} className="space-y-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+                  <FileText className="text-violet-400" size={20} /> Edit Event Details
                 </h2>
-
-                <div className="space-y-4">
-                  {[
-                    { label: "Title", value: event.title },
-                    { label: "Category", value: event.category || "General" },
-                    { label: "Organizer", value: event.eventOrganizer },
-                    { label: "Remaining Slots", value: event.remaningSlots === 0 ? "Fully Booked" : `${event.remaningSlots} slots` },
-                    { label: "Location", value: event.location },
-                  ].map((spec, index) => (
-                    <div key={index} className="flex justify-between items-center py-3.5 border-b border-slate-800/80">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{spec.label}</span>
-                      <span className="text-xs font-bold text-slate-200">{spec.value}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={editLoading}
+                    className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+                  >
+                    {editLoading ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <h2 className="text-xl font-extrabold text-white flex items-center gap-2 mb-4">
-                  Description
-                </h2>
-                <div className="bg-slate-950/30 border border-slate-800/60 p-5 rounded-2xl text-xs md:text-sm text-slate-400 leading-relaxed min-h-[150px]">
-                  {event.description || "No description provided."}
+              {editError && (
+                <div className="flex items-center gap-3 bg-red-950/40 text-red-400 p-4 rounded-xl border border-red-900/30 text-xs font-bold">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  {/* Title */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Event Title</label>
+                    <input
+                      type="text"
+                      name="title"
+                      required
+                      value={editFormData.title}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-white"
+                    />
+                  </div>
+
+                  {/* Organizer */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Event Organizer</label>
+                    <input
+                      type="text"
+                      name="eventOrganizer"
+                      required
+                      value={editFormData.eventOrganizer}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-white"
+                    />
+                  </div>
+
+                  {/* Category */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Category</label>
+                    <select
+                      name="category"
+                      value={editFormData.category}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all bg-slate-950 text-sm text-white cursor-pointer"
+                    >
+                      {["Workshop", "Seminar", "Coding Contest", "Webinar", "Other"].map((cat) => (
+                        <option key={cat} value={cat} className="bg-slate-900 text-slate-200">{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Date */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Date of Event</label>
+                    <input
+                      type="date"
+                      name="dateOFEvent"
+                      required
+                      value={editFormData.dateOFEvent}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-slate-200"
+                    />
+                  </div>
+
+                  {/* Slots */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Slots / Capacity</label>
+                    <input
+                      type="number"
+                      name="slots"
+                      required
+                      min={30}
+                      value={editFormData.slots}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-white"
+                    />
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex flex-col">
+                    <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Location</label>
+                    <input
+                      type="text"
+                      name="location"
+                      required
+                      value={editFormData.location}
+                      onChange={handleEditChange}
+                      className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Description</label>
+                <textarea
+                  name="description"
+                  required
+                  rows={4}
+                  value={editFormData.description}
+                  onChange={handleEditChange}
+                  className="w-full bg-slate-950/40 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all text-sm text-white resize-none"
+                />
+              </div>
+            </form>
+          )}
+
+          {activeTab === "details" && !isEditing && (
+            <div className="space-y-6">
+              {event.updateStatus && (
+                <div className="flex items-center gap-3 bg-amber-950/40 text-amber-400 p-4 rounded-2xl border border-amber-900/30 text-xs font-bold animate-pulse">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>Admin requires updates for this event. Please update the details using the edit button below.</span>
+                </div>
+              )}
+
+              {editSuccess && (
+                <div className="flex items-center gap-3 bg-emerald-950/40 text-emerald-400 p-4 rounded-xl border border-emerald-900/30 text-xs font-bold">
+                  <ShieldCheck size={16} className="shrink-0" />
+                  <span>{editSuccess}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h2 className="text-xl font-extrabold text-white flex items-center gap-2 mb-6">
+                    <FileText className="text-cyan-400" size={20} /> Specifications
+                  </h2>
+
+                  <div className="space-y-4">
+                    {[
+                      { label: "Title", value: event.title },
+                      { label: "Category", value: event.category || "General" },
+                      { label: "Organizer", value: event.eventOrganizer },
+                      { label: "Remaining Slots", value: event.remaningSlots === 0 ? "Fully Booked" : `${event.remaningSlots} slots` },
+                      { label: "Location", value: event.location },
+                      { 
+                        label: "Event Date", 
+                        value: event.dateOFEvent 
+                          ? new Date(event.dateOFEvent).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) 
+                          : "TBD" 
+                      },
+                    ].map((spec, index) => (
+                      <div key={index} className="flex justify-between items-center py-3.5 border-b border-slate-800/80">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{spec.label}</span>
+                        <span className="text-xs font-bold text-slate-200">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-white flex items-center gap-2 mb-4">
+                      Description
+                    </h2>
+                    <div className="bg-slate-950/30 border border-slate-800/60 p-5 rounded-2xl text-xs md:text-sm text-slate-450 leading-relaxed min-h-[150px]">
+                      {event.description || "No description provided."}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={startEditing}
+                    className="mt-6 w-fit bg-gradient-accent text-white px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-violet-500/25 transition-all text-xs uppercase tracking-wider"
+                  >
+                    Edit Event Details
+                  </button>
                 </div>
               </div>
             </div>
