@@ -606,3 +606,144 @@ exports.getAllVisitors = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getUser = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || user.role?.toLowerCase() !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized Access",
+      });
+    }
+
+    const { type } = req.query;
+
+    let filter = {};
+
+    if (type && type !== "all") {
+      if (["admin", "host", "visitor", "security"].includes(type)) {
+        filter = { role: type };
+      } else if (type === "other") {
+        filter = { role: { $ne: "visitor" } };
+      } else {
+        filter = { role: type };
+      }
+    }
+
+    const users = await userLogin.find(filter).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.updateUserRole = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || user.role?.toLowerCase() !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized Access",
+      });
+    }
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["admin", "host", "visitor", "security"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or missing role. Must be 'admin', 'host', 'visitor', or 'security'.",
+      });
+    }
+
+    const targetUser = await userLogin.findById(id);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Do not allow changing own role to prevent self-lockout
+    if (String(targetUser._id) === String(user.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot change your own role.",
+      });
+    }
+
+    targetUser.role = role;
+    await targetUser.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "User role updated successfully",
+      data: {
+        _id: targetUser._id,
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || user.role?.toLowerCase() !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized Access",
+      });
+    }
+
+    const { id } = req.params;
+
+    const targetUser = await userLogin.findById(id);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Do not allow deleting own account
+    if (String(targetUser._id) === String(user.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot delete your own account.",
+      });
+    }
+
+    await userLogin.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

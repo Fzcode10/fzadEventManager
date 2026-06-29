@@ -19,6 +19,7 @@ function QRScanner() {
   const videoRef = useRef(null);
   const scannerRef = useRef(null);
   const printRef = useRef(null);
+  const processingRef = useRef(false);
 
   const [scanResult, setScanResult] = useState(null);
   const [eventDetails, setEventDetails] = useState(null);
@@ -201,6 +202,12 @@ function QRScanner() {
   }, [isScanning]);
 
   const sendToBackend = async (qrData) => {
+    if (processingRef.current) return; // Prevent duplicate scans
+    processingRef.current = true;
+
+    // Stop scanner immediately to prevent further callbacks
+    if (scannerRef.current) scannerRef.current.stop();
+
     try {
       setError(null);
       let parsedData;
@@ -251,15 +258,17 @@ function QRScanner() {
       });
 
       setIsScanning(false);
-      if (scannerRef.current) scannerRef.current.stop();
     } catch (err) {
       setError(err.message);
       setIsScanning(false);
       setCountdown(10);
+    } finally {
+      processingRef.current = false;
     }
   };
 
   const restartScanner = () => {
+    processingRef.current = false;
     setScanResult(null);
     setError(null);
     setCountdown(0);

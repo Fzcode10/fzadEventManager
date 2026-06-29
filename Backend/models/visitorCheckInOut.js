@@ -3,16 +3,17 @@ const mongoose = require('mongoose');
 const visitorCheckInOutSchema = new mongoose.Schema({
     registrationId: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     }, eventName: {
         type: String,
         required: true
     }, checkIntime: {
         type: Date,
-        default: Date.now
+        // default: Date.now
     }, checkOutTime: {
         type: Date,
-        default: null
+        // default: null
     }, status: {
         type: String,
         enum: ["Pending", "IN", "OUT"],

@@ -18,7 +18,11 @@ import {
   User,
   Clock,
   Plus,
-  FileText
+  FileText,
+  Search,
+  Trash2,
+  Edit3,
+  Filter
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/AuthContext";
@@ -58,6 +62,12 @@ const AdminDashBoard = () => {
   const [visitorPaymentFilter, setVisitorPaymentFilter] = useState("all");
   const [allVisitors, setAllVisitors] = useState([]);
   const [visitorsLoading, setVisitorsLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [userType, setUserType] = useState("all");
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+  const [editRoleModal, setEditRoleModal] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -113,6 +123,7 @@ const AdminDashBoard = () => {
         role: "",
       });
       alert("🎉 Staff added successfully!");
+      fetchAllUsers();
     } catch (error) {
       setError(error.message);
     } finally {
@@ -137,27 +148,139 @@ const AdminDashBoard = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Modern styled stats cards in dark theme
-  const stats = [
-    {
-      label: "Active Visitors",
-      value: "12",
-      color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-      icon: <Activity size={18} />,
-    },
-    {
-      label: "Pending Invites",
-      value: "05",
-      color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
-      icon: <UserPlus size={18} />,
-    },
-    {
-      label: "Security Alerts",
-      value: "02",
-      color: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-      icon: <ShieldAlert size={18} />,
-    },
-  ];
+  // Dynamic stats generator based on active tab
+  const getOverviewStats = () => {
+    switch (activeTab) {
+      case "events":
+        return [
+          {
+            label: "Total Events",
+            value: String(events.length).padStart(2, "0"),
+            color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+            icon: <Calendar size={18} />,
+          },
+          {
+            label: "Approved Events",
+            value: String(events.filter(e => e.status === "approved").length).padStart(2, "0"),
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            icon: <ShieldCheck size={18} />,
+          },
+          {
+            label: "Pending Review",
+            value: String(events.filter(e => e.status === "pending").length).padStart(2, "0"),
+            color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+            icon: <Clock size={18} />,
+          },
+        ];
+      case "checklogs":
+        return [
+          {
+            label: "Total Scan Logs",
+            value: String(logs.length).padStart(2, "0"),
+            color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+            icon: <Clock size={18} />,
+          },
+          {
+            label: "Checked In Today",
+            value: String(logs.filter(l => l.status === "IN").length).padStart(2, "0"),
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            icon: <Activity size={18} />,
+          },
+          {
+            label: "Checked Out Today",
+            value: String(logs.filter(l => l.status === "OUT").length).padStart(2, "0"),
+            color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            icon: <ShieldCheck size={18} />,
+          },
+        ];
+      case "visitors":
+        return [
+          {
+            label: "Pre-Registrations",
+            value: String(allVisitors.length).padStart(2, "0"),
+            color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            icon: <UserPlus size={18} />,
+          },
+          {
+            label: "Approved Passes",
+            value: String(allVisitors.filter(v => v.paymentStatus === "success" || v.paymentStatus === "free").length).padStart(2, "0"),
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            icon: <ShieldCheck size={18} />,
+          },
+          {
+            label: "Pending Passes",
+            value: String(allVisitors.filter(v => v.paymentStatus === "pending").length).padStart(2, "0"),
+            color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+            icon: <Clock size={18} />,
+          },
+        ];
+      case "users":
+        return [
+          {
+            label: "Total Users",
+            value: String(allUsers.length).padStart(2, "0"),
+            color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+            icon: <Users size={18} />,
+          },
+          {
+            label: "Administrators",
+            value: String(allUsers.filter(u => u.role?.toLowerCase() === "admin").length).padStart(2, "0"),
+            color: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+            icon: <ShieldAlert size={18} />,
+          },
+          {
+            label: "Staff & Security",
+            value: String(allUsers.filter(u => ["host", "security"].includes(u.role?.toLowerCase())).length).padStart(2, "0"),
+            color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            icon: <UserPlus size={18} />,
+          },
+        ];
+      case "system":
+        return [
+          {
+            label: "Security Level (Incomplted)",
+            value: "High",
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            icon: <ShieldCheck size={18} />,
+          },
+          {
+            label: "Active Policies (Incompleted)",
+            value: "02",
+            color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            icon: <Settings size={18} />,
+          },
+          {
+            label: "Auto Checkout (Incomplted)",
+            value: "22:00",
+            color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+            icon: <Clock size={18} />,
+          },
+        ];
+      case "analytics":
+        return [
+          {
+            label: "Check-in Conversion",
+            value: allVisitors.length ? `${Math.round((logs.filter(l => l.status === "IN").length / allVisitors.length) * 100)}%` : "0%",
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+            icon: <TrendingUp size={18} />,
+          },
+          {
+            label: "Active Visitors",
+            value: String(logs.filter(l => l.status === "IN").length).padStart(2, "0"),
+            color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+            icon: <Activity size={18} />,
+          },
+          {
+            label: "Total Events",
+            value: String(events.length).padStart(2, "0"),
+            color: "text-violet-400 bg-violet-500/10 border-violet-500/20",
+            icon: <Calendar size={18} />,
+          },
+        ];
+      default:
+        return [];
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -261,6 +384,120 @@ const AdminDashBoard = () => {
     }
   };
 
+  const fetchAllUsers = async () => {
+    try {
+      setUserLoading(true);
+
+      const token = localStorage.getItem("user");
+      if (!token) return;
+
+      const cleanToken = token.startsWith("{")
+        ? JSON.parse(token).token
+        : token.replace(/"/g, "");
+
+      const url = userType
+        ? `/api/admin/users?type=${encodeURIComponent(userType)}`
+        : `/api/admin/users`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setAllUsers(data.data || []);
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId, newRole) => {
+    try {
+      setUserLoading(true);
+      const token = localStorage.getItem("user");
+      if (!token) return;
+
+      const cleanToken = token.startsWith("{")
+        ? JSON.parse(token).token
+        : token.replace(/"/g, "");
+
+      const res = await fetch(`/api/admin/users/${userId}/role`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${cleanToken}`,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("🎉 User role updated successfully!");
+        setEditRoleModal(false);
+        setSelectedUserForEdit(null);
+        await fetchAllUsers();
+      } else {
+        alert(`❌ Error: ${data.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ An error occurred while updating the user role.");
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("⚠️ Are you sure you want to delete this user? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setUserLoading(true);
+      const token = localStorage.getItem("user");
+      if (!token) return;
+
+      const cleanToken = token.startsWith("{")
+        ? JSON.parse(token).token
+        : token.replace(/"/g, "");
+
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+        },
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("🗑️ User deleted successfully!");
+        await fetchAllUsers();
+      } else {
+        alert(`❌ Error: ${data.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ An error occurred while deleting the user.");
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "users") {
+      fetchAllUsers();
+    }
+  }, [activeTab, userType]);
+
   const exportToCSV = (data, filename, headers) => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += headers.join(",") + "\n";
@@ -293,6 +530,13 @@ const AdminDashBoard = () => {
       fetchAllVisitors();
     }
   }, [activeTab, visitorPaymentFilter, visitorSearch]);
+
+  // Prime statistics counts on initial dashboard load
+  useEffect(() => {
+    fetchCheckLogs();
+    fetchAllVisitors();
+    fetchAllUsers();
+  }, []);
 
   const handleOpenEventDetials = (event) => {
     setSelectedEvent(event);
@@ -732,8 +976,8 @@ const AdminDashBoard = () => {
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-          <BarChart3 className="text-cyan-400" size={20} /> Insights & Analytics
-        </h2>
+          <BarChart3 className="text-cyan-400" size={20} /> Insights & Analytics 
+         <p>(Overview are according to All Visitors Tab)</p></h2>
         <p className="text-xs text-slate-400 mt-1">
           Real-time charts illustrating entry pass frequency and registration curves.
         </p>
@@ -749,34 +993,216 @@ const AdminDashBoard = () => {
     </div>
   );
 
-  const renderUsersTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-            <Users className="text-violet-400" size={20} /> Staff & Roles
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Configure system access for admins, event hosts, and campus security staff.
-          </p>
+  const renderUsersTab = () => {
+    const filteredUsers = allUsers.filter((u) => {
+      const search = userSearch.trim().toLowerCase();
+      if (!search) return true;
+      return (
+        u.name?.toLowerCase().includes(search) ||
+        u.email?.toLowerCase().includes(search) ||
+        (u.userId && u.userId.toLowerCase().includes(search))
+      );
+    });
+
+    const getRoleBadgeClasses = (role = "") => {
+      const r = role.toLowerCase();
+      if (r === "admin") {
+        return "bg-rose-950/40 border border-rose-900/30 text-rose-400 badge-glow-danger";
+      }
+      if (r === "host") {
+        return "bg-violet-950/40 border border-violet-900/30 text-violet-400";
+      }
+      if (r === "security") {
+        return "bg-blue-950/40 border border-blue-900/30 text-blue-400";
+      }
+      if (r === "visitor") {
+        return "bg-amber-950/40 border border-amber-900/30 text-amber-400";
+      }
+      return "bg-slate-900 border border-slate-800 text-slate-400";
+    };
+
+    return (
+      <div className="animate-fadeIn space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <Users className="text-violet-400" size={20} /> User & Role Directory
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Configure system roles, manage permissions, and add new administrative or security staff members.
+            </p>
+          </div>
+
+          <button
+            className="bg-gradient-accent text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:shadow-violet-500/25 transition-all self-start sm:self-auto"
+            onClick={() => setAddStaff(true)}
+          >
+            <Plus size={14} /> Add Staff
+          </button>
         </div>
-        <button
-          className="bg-gradient-accent text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:shadow-violet-500/25 transition-all"
-          onClick={() => setAddStaff(true)}
-        >
-          <Plus size={14} /> Add Staff
-        </button>
+
+        {/* Filter & Controls Bar */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/20 p-4 border border-slate-800/80 rounded-2xl">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search name, email, ID..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 outline-none focus:border-violet-500 placeholder:text-slate-650 transition-all"
+              />
+            </div>
+
+            {/* User Type Select */}
+            <div className="relative w-full sm:w-48">
+              <select
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 outline-none focus:border-violet-500 cursor-pointer transition-all"
+              >
+                <option value="all">All Users</option>
+                <option value="admin">Admins</option>
+                <option value="host">Hosts</option>
+                <option value="security">Security</option>
+                <option value="visitor">Visitors</option>
+                <option value="other">Staff Members Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            <button
+              onClick={fetchAllUsers}
+              className="border border-slate-800 hover:border-slate-700 hover:bg-slate-900 text-slate-350 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              Refresh
+            </button>
+
+            <button
+              onClick={() =>
+                exportToCSV(
+                  filteredUsers,
+                  "system_users_export.csv",
+                  ["userId", "name", "email", "role", "createdBy", "createdAt"]
+                )
+              }
+              className="bg-gradient-accent text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:shadow-violet-500/25"
+            >
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Users Table / Grid */}
+        <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/20 scrollbar-thin scrollbar-thumb-slate-800">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-900/40 text-slate-400 uppercase font-black tracking-wider">
+              <tr className="border-b border-slate-800/80">
+                <th className="px-6 py-4">User Details</th>
+                <th className="px-6 py-4">User ID</th>
+                <th className="px-6 py-4">Assigned Role</th>
+                <th className="px-6 py-4">Registered On</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/40 text-slate-350 font-medium">
+              {userLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-bold animate-pulse">
+                    Loading system users...
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-bold">
+                    No users found matching parameters.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((u) => (
+                  <tr className="hover:bg-slate-900/20 transition-colors" key={u._id}>
+                    {/* User Profile Info */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        {u.profilePhoto ? (
+                          <img
+                            src={u.profilePhoto}
+                            alt={u.name}
+                            className="w-8 h-8 rounded-full object-cover border border-slate-700"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500/30 to-cyan-500/30 border border-slate-700 flex items-center justify-center text-[10px] font-black text-violet-300">
+                            {u.name ? u.name.charAt(0).toUpperCase() : "?"}
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-bold text-white text-xs">{u.name}</div>
+                          <div className="text-[10px] text-slate-500 font-normal mt-0.5">{u.email}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* User ID */}
+                    <td className="px-6 py-4 whitespace-nowrap text-slate-400 font-mono">
+                      {u.userId || "—"}
+                    </td>
+
+                    {/* Role Badge */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${getRoleBadgeClasses(u.role)}`}>
+                        {u.role}
+                      </span>
+                    </td>
+
+                    {/* Created Date */}
+                    <td className="px-6 py-4 whitespace-nowrap text-slate-450">
+                      {u.createdAt
+                        ? new Date(u.createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "—"}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Edit Role Button */}
+                        <button
+                          onClick={() => {
+                            setSelectedUserForEdit(u);
+                            setEditRoleModal(true);
+                          }}
+                          className="bg-slate-900 hover:bg-slate-800 hover:text-white text-slate-400 p-2 rounded-lg border border-slate-850 transition-all"
+                          title="Change Role"
+                        >
+                          <Edit3 size={12} />
+                        </button>
+
+                        {/* Delete User Button */}
+                        <button
+                          onClick={() => handleDeleteUser(u._id)}
+                          className="bg-rose-950/20 hover:bg-rose-950/60 hover:text-rose-300 text-rose-450 p-2 rounded-lg border border-rose-900/30 transition-all"
+                          title="Remove User"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-      
-      <div className="p-8 text-center border border-slate-800 rounded-2xl bg-slate-950/20">
-        <Users className="w-12 h-12 text-slate-650 mx-auto mb-3" />
-        <p className="text-slate-400 font-bold text-sm">Role Matrix Active</p>
-        <p className="text-slate-500 text-xs mt-1 max-w-md mx-auto">
-          Hover over dynamic card slots to configure dashboard view authorizations for Host, Security, and Admin staff.
-        </p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderCheckLogsTab = () => (
     <div className="animate-fadeIn">
@@ -1078,7 +1504,7 @@ const AdminDashBoard = () => {
 
           {/* Stats Bar */}
           <div className="flex flex-wrap gap-4 w-full lg:w-auto">
-            {stats.map((s, idx) => (
+            {getOverviewStats().map((s, idx) => (
               <div
                 key={idx}
                 className="bg-slate-950/50 px-4 py-3 rounded-2xl border border-slate-850 flex items-center gap-3 flex-1 lg:flex-initial"
@@ -1232,6 +1658,77 @@ const AdminDashBoard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Role Modal */}
+      {editRoleModal && selectedUserForEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 bg-slate-950/80 backdrop-blur-md">
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl transition-all duration-300 text-slate-100">
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
+              <div>
+                <h3 className="text-xl font-black text-white leading-tight">
+                  Update System Role
+                </h3>
+                <p className="mt-1 text-xs text-slate-400">
+                  Modify system access for <strong>{selectedUserForEdit.name}</strong>.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditRoleModal(false);
+                  setSelectedUserForEdit(null);
+                }}
+                className="bg-slate-950/40 text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800 p-2 rounded-full transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="p-6 space-y-4">
+              <div className="flex flex-col">
+                <label className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">
+                  Select New Role
+                </label>
+                <select
+                  value={selectedUserForEdit.role}
+                  onChange={(e) => setSelectedUserForEdit({ ...selectedUserForEdit, role: e.target.value })}
+                  className="w-full bg-slate-950/40 border border-slate-850 p-3 rounded-xl outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all bg-slate-950 text-sm text-white cursor-pointer"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="host">Host</option>
+                  <option value="visitor">Visitor</option>
+                  <option value="security">Security</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-850">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditRoleModal(false);
+                    setSelectedUserForEdit(null);
+                  }}
+                  className="px-5 py-2.5 text-slate-400 font-bold hover:text-white hover:bg-slate-800/40 rounded-xl transition-all text-xs uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => handleUpdateUserRole(selectedUserForEdit._id, selectedUserForEdit.role)}
+                  disabled={userLoading}
+                  className="bg-gradient-accent text-white px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-violet-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
+                >
+                  {userLoading ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -17,10 +17,22 @@ exports.scanQrToggle = async (req, res) => {
             return res.status(404).json({ error: "Visitor not found in system!" });
         }
 
+        // Validate payment and event status before allowing scan
+        if (visitor.paymentStatus === "rejected") {
+            return res.status(403).json({ error: "Entry denied: Payment was rejected" });
+        }
+        if (visitor.paymentStatus === "pending") {
+            return res.status(403).json({ error: "Entry denied: Payment pending approval" });
+        }
+        if (!visitor.eventStatus) {
+            return res.status(400).json({ error: "Entry denied: Event has ended" });
+        }
+
         // Fetch profile photo from userLogin (user profile)
         const userLoginDoc = await userLogin.findOne({ email: visitor.email }).select('profilePhoto');
+        const visitorData = visitor.toObject();
         if (userLoginDoc?.profilePhoto) {
-            visitor._doc.profilePhoto = userLoginDoc.profilePhoto;
+            visitorData.profilePhoto = userLoginDoc.profilePhoto;
         }
 
         // Fetch event details for the pass
@@ -29,18 +41,20 @@ exports.scanQrToggle = async (req, res) => {
         // 2. Check current status
         let checkStatus = await visitorCheckStatusModule.findOne({ registrationId });
 
+        console.log(checkStatus);
+
         // --- SCENARIO A: Perform Check-out ---
         if (checkStatus && checkStatus.status === "IN") {
             const updatedStatus = await visitorCheckStatusModule.findOneAndUpdate(
                 { registrationId }, // Use consistent lowercase 'r'
                 { $set: { checkOutTime: new Date(), status: "OUT" } },
-                { returnDocument: 'after' } // This returns the updated document instead of the old one
+                { new: true } // Returns the updated document instead of the old one
             );
 
             return res.status(200).json({
                 msg: `Goodbye, ${visitor.fullName}! Check-out successful.`,
                 action: "OUT",
-                visitor: { ...visitor._doc, ...updatedStatus._doc },
+                visitor: { ...visitorData, ...updatedStatus.toObject() },
                 eventData: eventData ? {
                     venue: eventData.location,
                     date: eventData.dateOFEvent,
@@ -61,8 +75,8 @@ exports.scanQrToggle = async (req, res) => {
         const checked = await visitorCheckStatusModule.create({
             registrationId,
             eventName: visitor.eventName,
-            status: "IN",
-            action: "IN"
+            checkIntime: new Date(),
+            status: "IN"
         });
 
 
@@ -76,7 +90,7 @@ exports.scanQrToggle = async (req, res) => {
         return res.status(200).json({
             msg: `Welcome, ${visitor.fullName}! Check-in successful.`,
             action: "IN",
-            visitor: { ...visitor._doc, ...checked._doc },
+            visitor: { ...visitorData, ...checked.toObject() },
             eventData: eventData ? {
                 venue: eventData.location,
                 date: eventData.dateOFEvent,

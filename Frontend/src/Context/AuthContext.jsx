@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
           payload: {
             ...user,
             name: userDetails.name,
+            email: userDetails.email,
             role: userDetails.role,
             profilePhoto: userDetails.profilePhoto,
           },

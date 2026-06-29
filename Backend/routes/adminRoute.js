@@ -1,5 +1,5 @@
 const express = require('express');
-const {getProfile, createEvent, allEvents, updateEventStatus, requestEventUpdate, adNewStaff, sendUpdateOtp, updateProfile, getCheckLogs, getAllVisitors} = require('../controllers/adminController');
+const {getProfile, createEvent, allEvents, updateEventStatus, requestEventUpdate, adNewStaff, sendUpdateOtp, updateProfile, getCheckLogs, getAllVisitors, getUser, updateUserRole, deleteUser} = require('../controllers/adminController');
 const authMiddleware = require('../middleware/auth');
 const upload = require('../middleware/uploadPhotos');
 
@@ -24,5 +24,11 @@ router.post('/update-profile', authMiddleware, upload.single("profilePhoto"), up
 router.get('/checklogs', authMiddleware, getCheckLogs);
 
 router.get('/visitors', authMiddleware, getAllVisitors);
+
+router.get('/users', authMiddleware, getUser);
+
+router.patch('/users/:id/role', authMiddleware, updateUserRole);
+
+router.delete('/users/:id', authMiddleware, deleteUser);
 
 module.exports = router
